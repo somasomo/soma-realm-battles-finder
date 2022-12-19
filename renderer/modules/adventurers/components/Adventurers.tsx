@@ -12,6 +12,8 @@ export default function Adventurers({ address }: { address: string }) {
   const [maxDownside, setMaxDownside] = useState(20);
   const [maxUpside, setMaxUpside] = useState(0);
   const [oponents, setOponents] = useState<any>([]);
+
+  const [fighting, setFighting] = useState<number[]>([])
   useEffect(() => {
     const fetchADV = async () => {
       const adv = await getAdventurers(address);
@@ -51,7 +53,7 @@ export default function Adventurers({ address }: { address: string }) {
       console.log(oponents);
       Object.keys(oponents).forEach(tokenId => {
         const op = oponents[tokenId];
-        const adv = adventurers.find(i => i.tokenId === (tokenId as any));
+        const adv = adventurers.filter(i => fighting.includes(i.tokenId)).find(i => i.tokenId === (tokenId as any));
 
         if (adv) {
           //  proofs.push(getProof(adv.owner))
@@ -82,7 +84,13 @@ export default function Adventurers({ address }: { address: string }) {
         {adventurers &&
           adventurers.map((adv, index) => {
             return (
-              <div className="adventurer" key={`adventurer-${index}`}>
+              <div className={`adventurer ${fighting.includes(adv.tokenId) ? 'active': ''}`} key={`adventurer-${index}`} onClick={() => {
+                if (fighting.includes(adv.tokenId)) {
+                  setFighting(fighting.filter(i => i !== adv.tokenId))
+                }else {
+                  setFighting([...fighting, adv.tokenId])
+                }
+              }}>
                 <div>
                   <h3>Adventurer</h3>
                   <Adventurer adventurer={adv} />
@@ -99,9 +107,10 @@ export default function Adventurers({ address }: { address: string }) {
       </div>
       <div className="actions">
         <button onClick={fetchOponents}>Find opponents</button>
-        {Object.keys(oponents).length > 0 && (
-          <button onClick={fight}>{isLoading ? 'Loading...' : 'Fight!'}</button>
+        {Object.keys(oponents).length > 0 && fighting.length > 0 && (
+          <button onClick={fight}>{isLoading ? 'Loading...' : `Fight with ${fighting.length} adventurers`}</button>
         )}
+        {fighting.length === 0 && <div>Select some adventurers first</div>}
         {error && JSON.stringify(error, null, 2)}
         {isError && <div>Error on the transaction</div>}
 
@@ -133,6 +142,12 @@ export default function Adventurers({ address }: { address: string }) {
         .adventurer {
           margin: 10px;
           display: flex;
+          cursor: pointer;
+        }
+
+        .adventurer.active {
+          border: 1px solid yellow;
+          background: #c3c356;
         }
       `}</style>
     </div>
