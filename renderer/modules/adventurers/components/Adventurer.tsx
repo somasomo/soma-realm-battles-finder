@@ -23,7 +23,7 @@ export function Adventurer({adventurer}: {
             </div>
             <div className="trait">
                 <div className="trait-text">constitution</div>
-                <div className="trait-value">{adventurer.level}</div>
+                <div className="trait-value">{adventurer.constitution}</div>
             </div>
             <div className="trait">
                 <div className="trait-text">strength</div>

@@ -93,12 +93,12 @@ async function getOponent(adventurer: AdventurerType, maxDownside = 20, maxUpsid
     const advs = data.data.adventurers.map((i: any) => {
         return {
             ...i,
-            strength: parseInt(i.strength),
-            dexterity: parseInt(i.dexterity),
-            intelligence: parseInt(i.intelligence),
-            charisma: parseInt(i.charisma),
-            constitution: parseInt(i.constitution),
-            wisdom: parseInt(i.wisdom),
+            strength: parseInt(i.strength, 10),
+            dexterity: parseInt(i.dexterity, 10),
+            intelligence: parseInt(i.intelligence, 10),
+            charisma: parseInt(i.charisma, 10),
+            constitution: parseInt(i.constitution, 10),
+            wisdom: parseInt(i.wisdom, 10),
         }
     }) as AdventurerType[]
 
