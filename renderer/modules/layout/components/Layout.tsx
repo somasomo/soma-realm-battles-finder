@@ -5,7 +5,7 @@ import { Footer } from './Footer';
 
 export function Layout({
   children,
-  metaDescription = 'Your boilerplate for your frontend application'
+  metaDescription = 'Find your opponents easily'
 }: {
   children: React.ReactNode;
   metaDescription?: string;
@@ -13,7 +13,7 @@ export function Layout({
   return (
     <React.Fragment>
       <Head>
-        <title>Web3 | {metaDescription}</title>
+        <title>Realm Battles | {metaDescription}</title>
         <meta name="description" content={metaDescription} />
         <link rel="icon" href={'/images/logo.png'} />
       </Head>
