@@ -11,4 +11,5 @@ export type AdventurerType = {
     charisma: number,
     intelligence: number,
     tokenId: number
+    archetype: string
 }

@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { AdventurerType } from "../types/adventurer"
 
 export function Adventurer({adventurer}: {
@@ -5,6 +6,7 @@ export function Adventurer({adventurer}: {
 }) {
     return <div>
         <div className="wrapper">
+            <Image src={`https://app.rlm.land/assets/adventurers/${adventurer.archetype}.jpeg`} width={150} height={150} alt="Adventurer" />
         <div className="trait">
                 <div className="trait-text">tokenId</div>
                 <div className="trait-value">{adventurer.tokenId}</div>
