@@ -90,7 +90,7 @@ async function getOponent(adventurer: AdventurerType, maxDownside = 20, maxUpsid
         }
         `,
     });
-    const advs = data.data.adventurers.map(i => {
+    const advs = data.data.adventurers.map((i: any) => {
         return {
             ...i,
             strength: parseInt(i.strength),

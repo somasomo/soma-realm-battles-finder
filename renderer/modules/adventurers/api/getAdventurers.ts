@@ -36,7 +36,7 @@ export const getAdventurers = async (
     }
     `,
   });
-  return data.data.adventurers.map(i => {
+  return data.data.adventurers.map((i: any) => {
     return {
       ...i,
       strength: parseInt(i.strength),

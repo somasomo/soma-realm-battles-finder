@@ -1,7 +1,7 @@
 const LOGGER_LEVEL = 0
 
-export default function(level = 'DEBUG', ...args) {
-  const numberLevel = {
+export default function logger(level = 'DEBUG', ...args : any[]): void {
+  const numberLevel : any = {
     'DEBUG': 0,
     'INFO': 1,
     'WARNING': 2,
