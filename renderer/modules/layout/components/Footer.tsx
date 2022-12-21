@@ -3,12 +3,8 @@ import Link from 'next/link';
 export function Footer() {
   return (
     <div>
-      <div className="footer">
-        
-      </div>
-      <div style={{ padding: '30px', textAlign: 'center' }}>
-        2022 - Realm Oponents
-      </div>
+      <div className="footer"></div>
+      <div style={{ padding: '30px', textAlign: 'center' }}>2022 - Realm Oponents</div>
       <style jsx>
         {`
           .footer {

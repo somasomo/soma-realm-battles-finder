@@ -11,13 +11,12 @@ export function Header() {
             <h1>
               <Link href="/" title="Home page">
                 <div style={{ marginLeft: '5px', color: 'white' }}>
-                  <h1 style={{ color: 'white'}}>Realm Battles</h1>
+                  <h1 style={{ color: 'white' }}>Realm Battles</h1>
                 </div>
               </Link>
             </h1>
           </div>
           <div className="right">
-            
             <div className="login-box">
               <ConnectButton
                 accountStatus={{

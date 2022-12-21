@@ -13,7 +13,7 @@ export default function Adventurers({ address }: { address: string }) {
   const [maxUpside, setMaxUpside] = useState(0);
   const [oponents, setOponents] = useState<any>([]);
 
-  const [fighting, setFighting] = useState<number[]>([])
+  const [fighting, setFighting] = useState<number[]>([]);
   useEffect(() => {
     const fetchADV = async () => {
       const adv = await getAdventurers(address);
@@ -53,15 +53,19 @@ export default function Adventurers({ address }: { address: string }) {
       console.log(oponents);
       Object.keys(oponents).forEach(tokenId => {
         const op = oponents[tokenId];
-        const adv = adventurers.filter(i => fighting.includes(i.tokenId)).find(i => i.tokenId === (tokenId as any));
+        const adv = adventurers
+          .filter(i => fighting.includes(i.tokenId))
+          .find(i => i.tokenId === (tokenId as any));
 
         if (adv) {
-          //  proofs.push(getProof(adv.owner))
+          proofs.push(getProof(adv.owner));
+          //proofs.push([])
           ownerAddresses.push('0x747910B74D2651A06563C3182838EAE4120F4277');
           tokenIds.push(parseInt(adv.tokenId as any, 10));
           oppAddresses.push('0x747910B74D2651A06563C3182838EAE4120F4277');
           oppIds.push(parseInt(op.tokenId, 10));
-          //  oppProofs.push(getProof(op.owner))
+          oppProofs.push(getProof(op.owner));
+          //oppProofs.push([])
         }
       });
 
@@ -84,13 +88,17 @@ export default function Adventurers({ address }: { address: string }) {
         {adventurers &&
           adventurers.map((adv, index) => {
             return (
-              <div className={`adventurer ${fighting.includes(adv.tokenId) ? 'active': ''}`} key={`adventurer-${index}`} onClick={() => {
-                if (fighting.includes(adv.tokenId)) {
-                  setFighting(fighting.filter(i => i !== adv.tokenId))
-                }else {
-                  setFighting([...fighting, adv.tokenId])
-                }
-              }}>
+              <div
+                className={`adventurer ${fighting.includes(adv.tokenId) ? 'active' : ''}`}
+                key={`adventurer-${index}`}
+                onClick={() => {
+                  if (fighting.includes(adv.tokenId)) {
+                    setFighting(fighting.filter(i => i !== adv.tokenId));
+                  } else {
+                    setFighting([...fighting, adv.tokenId]);
+                  }
+                }}
+              >
                 <div>
                   <h3>Adventurer</h3>
                   <Adventurer adventurer={adv} />
@@ -108,7 +116,9 @@ export default function Adventurers({ address }: { address: string }) {
       <div className="actions">
         <button onClick={fetchOponents}>Find opponents</button>
         {Object.keys(oponents).length > 0 && fighting.length > 0 && (
-          <button onClick={fight}>{isLoading ? 'Loading...' : `Fight with ${fighting.length} adventurers`}</button>
+          <button onClick={fight}>
+            {isLoading ? 'Loading...' : `Fight with ${fighting.length} adventurers`}
+          </button>
         )}
         {fighting.length === 0 && <div>Select some adventurers first</div>}
         {error && JSON.stringify(error, null, 2)}

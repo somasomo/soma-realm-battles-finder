@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
 
 export default function Home() {
-  const { address} = useAccount();
+  const { address } = useAccount();
   const [show, setShow] = useState(false);
   // Prevent server-side problem with different UI
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function Home() {
             <h1>Realm Battles</h1>
           </div>
 
-          {show && address && <Adventurers address={address} /> }
+          {show && address && <Adventurers address={address} />}
         </div>
       </main>
       <style jsx>{`
