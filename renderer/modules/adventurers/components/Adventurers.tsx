@@ -7,6 +7,7 @@ import abi from '../fight.abi.json';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { getProof } from '../fight';
 import { BigNumber } from 'ethers';
+import { Button } from '@/modules/layout/components/Button';
 export default function Adventurers({ address }: { address: string }) {
   const [adventurers, setAdventurers] = useState<AdventurerType[]>([]);
   const [maxDownside, setMaxDownside] = useState(20);
@@ -14,6 +15,15 @@ export default function Adventurers({ address }: { address: string }) {
   const [oponents, setOponents] = useState<any>([]);
 
   const [fighting, setFighting] = useState<number[]>([]);
+
+  const selectAll = () => {
+    setFighting(adventurers.map(i => i.tokenId));
+  };
+
+  const selectNone = () => {
+    setFighting([]);
+  };
+
   useEffect(() => {
     const fetchADV = async () => {
       const adv = await getAdventurers(address);
@@ -101,12 +111,12 @@ export default function Adventurers({ address }: { address: string }) {
               >
                 <div>
                   <h3>Adventurer</h3>
-                  <Adventurer adventurer={adv} />
+                  <Adventurer adventurer={adv} oponent={oponents[adv.tokenId]} />
                 </div>
                 {oponents[adv.tokenId] && (
                   <div>
                     <h3>OPONENT</h3>
-                    <Adventurer adventurer={oponents[adv.tokenId]} />
+                    <Adventurer adventurer={oponents[adv.tokenId]} oponent={adv} />
                   </div>
                 )}
               </div>
@@ -114,17 +124,13 @@ export default function Adventurers({ address }: { address: string }) {
           })}
       </div>
       <div className="actions">
-        <button onClick={fetchOponents}>Find opponents</button>
-        {Object.keys(oponents).length > 0 && fighting.length > 0 && (
-          <button onClick={fight}>
-            {isLoading ? 'Loading...' : `Fight with ${fighting.length} adventurers`}
-          </button>
-        )}
-        {fighting.length === 0 && <div>Select some adventurers first</div>}
-        {error && JSON.stringify(error, null, 2)}
-        {isError && <div>Error on the transaction</div>}
+       
 
-        <h3>Max difference down</h3>
+        <div style={{margin: '10px'}}>
+        
+        <div style={{display: 'flex', flexDirection: 'row', padding: '15px', border: '1px solid black', marginBottom: '10px'}}>
+        <div>
+        <label>Maximum Trait Downside (The difference in power to the downside for each Adventurer)</label>
         <input
           type="number"
           value={maxDownside}
@@ -133,7 +139,9 @@ export default function Adventurers({ address }: { address: string }) {
           }}
         />
 
-        <h3>Max difference up</h3>
+        </div>
+        <div>
+        <label>Maximum Trait Upside (The difference in power to the upside)</label>
         <input
           type="number"
           value={maxUpside}
@@ -141,8 +149,30 @@ export default function Adventurers({ address }: { address: string }) {
             setMaxUpside(parseInt(e.target.value));
           }}
         />
+        </div>
+        </div>
+
+
+        <Button onClick={fetchOponents}>Find opponents</Button>
       </div>
 
+        </div>
+
+        <div style={{margin: '10px'}}>
+        <Button onClick={selectAll}>Select all</Button>
+        <Button onClick={selectNone}>Select none</Button>
+        </div>
+        
+        {Object.keys(oponents).length > 0 && fighting.length > 0 && (
+           <div style={{margin: '10px'}}><Button primary onClick={fight}>
+            {isLoading ? 'Loading...' : `Fight with ${fighting.length} adventurers`}
+          </Button></div>
+        )}
+        {fighting.length === 0 && <div>Select some adventurers first</div>}
+        {error && JSON.stringify(error, null, 2)}
+        {isError && <div>Error on the transaction</div>}
+        
+        
       <style jsx>{`
         .wrapper {
           display: flex;
@@ -153,6 +183,7 @@ export default function Adventurers({ address }: { address: string }) {
           margin: 10px;
           display: flex;
           cursor: pointer;
+          padding: 15px;
         }
 
         .adventurer.active {
