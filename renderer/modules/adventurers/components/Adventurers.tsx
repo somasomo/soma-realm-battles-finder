@@ -24,10 +24,19 @@ export default function Adventurers({ address }: { address: string }) {
     setFighting([]);
   };
 
+  const [start, setStart] = useState(1);
+  const [end, setEnd] = useState(50);
+
+  const selectX = () => {
+
+    setFighting(adventurers.slice(start === 0 ? 0 : start - 1, end).map(i => i.tokenId));
+  };
+
   useEffect(() => {
     const fetchADV = async () => {
       const adv = await getAdventurers(address);
       setAdventurers(adv);
+      setEnd(adv.length > 100 ? 50 : adv.length)
     };
     fetchADV();
   }, [address]);
@@ -110,7 +119,7 @@ export default function Adventurers({ address }: { address: string }) {
                 }}
               >
                 <div>
-                  <h3>Adventurer</h3>
+                  <h3>Adventurer {index+1} - (#{adv.tokenId}) </h3>
                   <Adventurer adventurer={adv} oponent={oponents[adv.tokenId]} />
                 </div>
                 {oponents[adv.tokenId] && (
@@ -124,55 +133,65 @@ export default function Adventurers({ address }: { address: string }) {
           })}
       </div>
       <div className="actions">
-       
+        <div style={{ margin: '10px' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              padding: '15px',
+              border: '1px solid black',
+              marginBottom: '10px'
+            }}
+          >
+            <div>
+              <label>
+                Maximum Trait Downside (The difference in power to the downside for each Adventurer)
+              </label>
+              <input
+                type="number"
+                value={maxDownside}
+                onChange={e => {
+                  setMaxDownside(parseInt(e.target.value));
+                }}
+              />
+            </div>
+            <div>
+              <label>Maximum Trait Upside (The difference in power to the upside)</label>
+              <input
+                type="number"
+                value={maxUpside}
+                onChange={e => {
+                  setMaxUpside(parseInt(e.target.value));
+                }}
+              />
+            </div>
+          </div>
 
-        <div style={{margin: '10px'}}>
-        
-        <div style={{display: 'flex', flexDirection: 'row', padding: '15px', border: '1px solid black', marginBottom: '10px'}}>
-        <div>
-        <label>Maximum Trait Downside (The difference in power to the downside for each Adventurer)</label>
-        <input
-          type="number"
-          value={maxDownside}
-          onChange={e => {
-            setMaxDownside(parseInt(e.target.value));
-          }}
-        />
-
+          <Button onClick={fetchOponents}>Find opponents</Button>
         </div>
-        <div>
-        <label>Maximum Trait Upside (The difference in power to the upside)</label>
-        <input
-          type="number"
-          value={maxUpside}
-          onChange={e => {
-            setMaxUpside(parseInt(e.target.value));
-          }}
-        />
-        </div>
-        </div>
-
-
-        <Button onClick={fetchOponents}>Find opponents</Button>
       </div>
 
-        </div>
-
-        <div style={{margin: '10px'}}>
+      <div style={{ margin: '10px' }}>
         <Button onClick={selectAll}>Select all</Button>
         <Button onClick={selectNone}>Select none</Button>
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+        <Button onClick={selectX}>Select {end + 1 - start} (From {start} to {end})</Button>
+        <input type="number" value={start} onChange={e => setStart(parseInt(e.target.value))} />
+        <input type="number" value={end} onChange={e => setEnd(parseInt(e.target.value))} />
         </div>
-        
-        {Object.keys(oponents).length > 0 && fighting.length > 0 && (
-           <div style={{margin: '10px'}}><Button primary onClick={fight}>
+      </div>
+
+      {Object.keys(oponents).length > 0 && fighting.length > 0 && (
+        <div style={{ margin: '10px' }}>
+          <Button primary onClick={fight}>
             {isLoading ? 'Loading...' : `Fight with ${fighting.length} adventurers`}
-          </Button></div>
-        )}
-        {fighting.length === 0 && <div>Select some adventurers first</div>}
-        {error && JSON.stringify(error, null, 2)}
-        {isError && <div>Error on the transaction</div>}
-        
-        
+          </Button>
+        </div>
+      )}
+      {fighting.length === 0 && <div>Select some adventurers first</div>}
+      {error && JSON.stringify(error, null, 2)}
+      {isError && <div>Error on the transaction</div>}
+
       <style jsx>{`
         .wrapper {
           display: flex;

@@ -64,7 +64,7 @@ async function getOponent(
             strength_lte: ${max_strength},
             owner_not: "${adventurer.owner}"
             exitArenaAt_not: 0,
-             exitArenaAt_gte:${Math.round(Date.now() / 1000)},
+            exitArenaAt_gte:${Math.round(Date.now() / 1000)},
             constitution_gte: ${min_constitution},
             constitution_lte: ${max_constitution},
             dexterity_gte: ${min_dexterity},
