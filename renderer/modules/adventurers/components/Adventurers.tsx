@@ -57,7 +57,7 @@ export default function Adventurers({ address }: { address: string }) {
     functionName: 'fight',
     mode: 'recklesslyUnprepared',
     overrides: {
-      gasLimit: BigNumber.from(9000000)
+      gasLimit: BigNumber.from(fighting.length * 600000)
     }
   });
 
@@ -92,7 +92,8 @@ export default function Adventurers({ address }: { address: string }) {
 
       try {
         await writeAsync({
-          recklesslySetUnpreparedArgs: [ownerAddresses, tokenIds, proofs, oppAddresses, oppIds, oppProofs]
+          recklesslySetUnpreparedArgs: [ownerAddresses, tokenIds, proofs, oppAddresses, oppIds, oppProofs],
+          gasLimit: BigNumber.from(9000000)
         });
       } catch (e) {
         console.log(e);
