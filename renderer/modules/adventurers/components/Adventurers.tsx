@@ -92,8 +92,7 @@ export default function Adventurers({ address }: { address: string }) {
 
       try {
         await writeAsync({
-          recklesslySetUnpreparedArgs: [ownerAddresses, tokenIds, proofs, oppAddresses, oppIds, oppProofs],
-          gasLimit: BigNumber.from(9000000)
+          recklesslySetUnpreparedArgs: [ownerAddresses, tokenIds, proofs, oppAddresses, oppIds, oppProofs]
         });
       } catch (e) {
         console.log(e);
