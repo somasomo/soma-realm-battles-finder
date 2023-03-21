@@ -57,7 +57,7 @@ export default function Adventurers({ address }: { address: string }) {
     functionName: 'fight',
     mode: 'recklesslyUnprepared',
     overrides: {
-      gasLimit: BigNumber.from(fighting.length * 600000)
+      gasLimit: BigNumber.from(fighting.length * 600000).gt(5000000) ? BigNumber.from(fighting.length * 600000) : BigNumber.from(5000000)
     }
   });
 
