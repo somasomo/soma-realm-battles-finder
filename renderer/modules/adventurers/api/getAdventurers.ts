@@ -2,7 +2,6 @@ import axios from 'axios';
 import { ethers } from 'ethers';
 import { AdventurerType } from '../types/adventurer';
 
-export const CONTRACT_ADDRESS = '0x71f5C328241fC3e03A8c79eDCD510037802D369c';
 
 const graphEndpoint = 'https://api.thegraph.com/subgraphs/name/jona/realm-v2';
 
