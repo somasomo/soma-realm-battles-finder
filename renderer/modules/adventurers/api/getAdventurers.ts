@@ -8,8 +8,13 @@ const graphEndpoint = 'https://api.thegraph.com/subgraphs/name/jona/realm-v2';
 export const getAdventurers = async (address: string): Promise<AdventurerType[]> => {
   const { data } = await axios.post(graphEndpoint, {
     query: `
-    query ExmapleQuery{
-      adventurers(first: 1000, where: { owner: "${address.toLowerCase()}"}) {
+    query ExmapleQuery {
+      adventurers(first: 1000, where: { 
+      attackEpoch_not: "${currentEpoch()}",
+      exitArenaAt_not: 0,
+      exitArenaAt_gte:${Math.round(Date.now() / 1000)},
+      owner: "${address.toLowerCase()}"
+      }) {
         id
         address
         tokenId,
@@ -27,7 +32,8 @@ export const getAdventurers = async (address: string): Promise<AdventurerType[]>
         intelligence
         charisma
         constitution
-        wisdom
+        wisdom,
+        exitArenaAt
       }
     }
     `
@@ -44,3 +50,6 @@ export const getAdventurers = async (address: string): Promise<AdventurerType[]>
     };
   });
 };
+function currentEpoch() {
+  return Math.floor((4826692800 - Math.floor(Date.now() / 1000)) / 86400)
+}

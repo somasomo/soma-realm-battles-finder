@@ -10,7 +10,7 @@ import { BigNumber } from 'ethers';
 import { Button } from '@/modules/layout/components/Button';
 export default function Adventurers({ address }: { address: string }) {
   const [adventurers, setAdventurers] = useState<AdventurerType[]>([]);
-  const [maxDownside, setMaxDownside] = useState(20);
+  const [maxAdvantageTraits, setMaxAdvantageTraits] = useState(1);
   const [maxUpside, setMaxUpside] = useState(0);
   const [oponents, setOponents] = useState<any>([]);
 
@@ -42,7 +42,7 @@ export default function Adventurers({ address }: { address: string }) {
   }, [address]);
 
   const fetchOponents = async () => {
-    const op = await getOponents(adventurers, maxDownside, maxUpside);
+    const op = await getOponents(adventurers, maxAdvantageTraits, maxUpside);
 
     setOponents(op);
   };
@@ -145,13 +145,13 @@ export default function Adventurers({ address }: { address: string }) {
           >
             <div>
               <label>
-                Maximum Trait Downside (The difference in power to the downside for each Adventurer)
+                Maximum Traits with Advantage (The maximum amount of traits where the Adventurer may hava an advantage)
               </label>
               <input
                 type="number"
-                value={maxDownside}
+                value={maxAdvantageTraits}
                 onChange={e => {
-                  setMaxDownside(parseInt(e.target.value));
+                  setMaxAdvantageTraits(parseInt(e.target.value));
                 }}
               />
             </div>

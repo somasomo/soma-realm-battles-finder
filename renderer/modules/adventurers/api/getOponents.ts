@@ -32,28 +32,26 @@ function getProbWinning(advA: AdventurerType, advB: AdventurerType) {
 
 async function getOponent(
   adventurer: AdventurerType,
-  maxDownside = 20,
+  maxAdvantageTraits = 1,
   maxUpside = 0
 ): Promise<AdventurerType[]> {
-  const min_charisma = adventurer.charisma - maxDownside <= 0 ? 0 : adventurer.charisma - maxDownside;
-  const max_charisma = adventurer.charisma + maxUpside <= 0 ? 0 : adventurer.charisma + maxUpside;
-  const min_wisdom = adventurer.wisdom - maxDownside <= 0 ? 0 : adventurer.wisdom - maxDownside;
-  const max_wisdom = adventurer.wisdom + maxUpside <= 0 ? 0 : adventurer.wisdom + maxUpside;
-  const min_intelligence =
-    adventurer.intelligence - maxDownside <= 0 ? 0 : adventurer.intelligence - maxDownside;
-  const max_intelligence = adventurer.intelligence + maxUpside <= 0 ? 0 : adventurer.intelligence + maxUpside;
-  const min_strength = adventurer.strength - maxDownside <= 0 ? 0 : adventurer.strength - maxDownside;
-  const max_strength = adventurer.strength + maxUpside <= 0 ? 0 : adventurer.strength + maxUpside;
-  const min_constitution =
-    adventurer.constitution - maxDownside <= 0 ? 0 : adventurer.constitution - maxDownside;
-  const max_constitution = adventurer.constitution + maxUpside <= 0 ? 0 : adventurer.constitution + maxUpside;
-  const min_dexterity = adventurer.dexterity - maxDownside <= 0 ? 0 : adventurer.dexterity - maxDownside;
-  const max_dexterity = adventurer.dexterity + maxUpside <= 0 ? 0 : adventurer.dexterity + maxUpside;
+  const min_charisma = Math.floor(adventurer.charisma /2);
+  const max_charisma = adventurer.charisma + maxUpside;
+  const min_wisdom = Math.floor(adventurer.wisdom/2);
+  const max_wisdom = adventurer.wisdom + maxUpside;
+  const min_intelligence = Math.floor(adventurer.intelligence /2);
+  const max_intelligence = adventurer.intelligence + maxUpside;
+  const min_strength = Math.floor(adventurer.strength/2);
+  const max_strength = adventurer.strength + maxUpside;
+  const min_constitution = Math.floor(adventurer.constitution/2);
+  const max_constitution = adventurer.constitution + maxUpside;
+  const min_dexterity = Math.floor(adventurer.dexterity /2);
+  const max_dexterity = adventurer.dexterity + maxUpside;
 
   const { data } = await axios.post(graphEndpoint, {
     query: `
         query ExmapleQuery{
-          adventurers(first: 100, where: { 
+          adventurers(first: 1000, where: { 
             charisma_gte: ${min_charisma},
             charisma_lte: ${max_charisma},
             wisdom_gte: ${min_wisdom},
@@ -68,9 +66,9 @@ async function getOponent(
             constitution_gte: ${min_constitution},
             constitution_lte: ${max_constitution},
             dexterity_gte: ${min_dexterity},
-            dexterity_lte: ${max_dexterity}
-        
-        }) {
+            dexterity_lte: ${max_dexterity},
+            tokenId_not: "${adventurer.tokenId}"
+          }) {
             id
             address
             tokenId,
@@ -106,23 +104,19 @@ async function getOponent(
   }) as AdventurerType[];
 
   return advs
-    .filter(enemy => enemy.tokenId !== adventurer.tokenId)
-    .sort((a, b) => {
-      const probWining = getProbWinning(adventurer, a);
-      const probWiningB = getProbWinning(adventurer, b);
-      return probWining > probWiningB ? -1 : 1;
-    });
+    .filter(enemy => isSuitableOpponent(adventurer, enemy, maxAdvantageTraits))
+    .sort((a, b) => compareAdventurers(a, b, adventurer));
 }
 export async function getOponents(
   adventurers: AdventurerType[],
-  maxDownside = 20,
+  maxAdvantageTraits = 1,
   maxUpside = 0
 ): Promise<{ [key: number]: AdventurerType }> {
   const map: { [key: number]: AdventurerType } = {};
   const used: number[] = [];
   await Promise.all(
     adventurers.map(async adv => {
-      const enemies = await getOponent(adv, maxDownside, maxUpside);
+      const enemies = await getOponent(adv, maxAdvantageTraits, maxUpside);
 
       enemies.forEach(enemy => {
         if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
@@ -137,4 +131,53 @@ export async function getOponents(
   );
 
   return map;
+}
+function compareAdventurers(advA: AdventurerType, advB: AdventurerType, reference: AdventurerType): number {
+  const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'];
+  let scoreA = 0;
+  let scoreB = 0;
+  let losingPreference = 3;
+
+  categories.forEach(category => {
+    const diffA = advA[category] - reference[category];
+    const diffB = advB[category] - reference[category];
+
+    if (diffA > 0) {
+      scoreA += (1 / diffA) * losingPreference; // Reward for being stronger with smaller difference
+    } else {
+      scoreA -= diffA; // Reward for being weaker with larger difference
+    }
+
+    if (diffB > 0) {
+      scoreB += (1 / diffB) * losingPreference; // Reward for being stronger with smaller difference
+    } else {
+      scoreB -= diffB; // Reward for being weaker with larger difference
+    }
+  });
+
+  return scoreA > scoreB ? -1 : 1;
+}
+function isSuitableOpponent(advA: AdventurerType, advB: AdventurerType, maxAdvantageTraits: number): boolean {
+  let weakerCategories = 0;
+
+  if (advA.charisma >= advB.charisma) {
+    weakerCategories++;
+  } 
+  if (advA.strength >= advB.strength) {
+    weakerCategories++;
+  } 
+  if (advA.intelligence >= advB.intelligence) {
+    weakerCategories++;
+  } 
+  if (advA.constitution >= advB.constitution) {
+    weakerCategories++;
+  } 
+  if (advA.wisdom >= advB.wisdom) {
+    weakerCategories++;
+  } 
+  if (advA.dexterity >= advB.dexterity) {
+    weakerCategories++;
+  } 
+
+  return weakerCategories <= maxAdvantageTraits;
 }
