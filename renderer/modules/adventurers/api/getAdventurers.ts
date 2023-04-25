@@ -11,8 +11,6 @@ export const getAdventurers = async (address: string): Promise<AdventurerType[]>
     query ExmapleQuery {
       adventurers(first: 1000, where: { 
       attackEpoch_not: "${currentEpoch()}",
-      exitArenaAt_not: 0,
-      exitArenaAt_gte:${Math.round(Date.now() / 1000)},
       owner: "${address.toLowerCase()}"
       }) {
         id
@@ -32,8 +30,7 @@ export const getAdventurers = async (address: string): Promise<AdventurerType[]>
         intelligence
         charisma
         constitution
-        wisdom,
-        exitArenaAt
+        wisdom        
       }
     }
     `
@@ -46,7 +43,8 @@ export const getAdventurers = async (address: string): Promise<AdventurerType[]>
       intelligence: parseInt(i.intelligence, 10),
       charisma: parseInt(i.charisma, 10),
       constitution: parseInt(i.constitution, 10),
-      wisdom: parseInt(i.wisdom, 10)
+      wisdom: parseInt(i.wisdom, 10),
+      klass: parseInt(i.klass, 10)
     };
   });
 };

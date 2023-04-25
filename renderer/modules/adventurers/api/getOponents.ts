@@ -32,6 +32,7 @@ function getProbWinning(advA: AdventurerType, advB: AdventurerType) {
 
 async function getOponent(
   adventurer: AdventurerType,
+  winIt: boolean,
   maxAdvantageTraits = 1,
   maxUpside = 0
 ): Promise<AdventurerType[]> {
@@ -61,8 +62,6 @@ async function getOponent(
             strength_gte: ${min_strength},
             strength_lte: ${max_strength},
             owner_not: "${adventurer.owner}"
-            exitArenaAt_not: 0,
-            exitArenaAt_gte:${Math.round(Date.now() / 1000)},
             constitution_gte: ${min_constitution},
             constitution_lte: ${max_constitution},
             dexterity_gte: ${min_dexterity},
@@ -99,15 +98,17 @@ async function getOponent(
       intelligence: parseInt(i.intelligence, 10),
       charisma: parseInt(i.charisma, 10),
       constitution: parseInt(i.constitution, 10),
-      wisdom: parseInt(i.wisdom, 10)
+      wisdom: parseInt(i.wisdom, 10),
+      klass: parseInt(i.klass, 10)
     };
   }) as AdventurerType[];
 
   return advs
-    .filter(enemy => isSuitableOpponent(adventurer, enemy, maxAdvantageTraits))
-    .sort((a, b) => compareAdventurers(a, b, adventurer));
+    .filter(enemy => enemy.tokenId !== adventurer.tokenId)
+    .filter(enemy => isSuitableOpponent(adventurer, enemy, maxAdvantageTraits, winIt))
+    .sort((a, b) => compareAdventurers(a, b, adventurer, winIt));
 }
-export async function getOponents(
+export async function getOpponents(
   adventurers: AdventurerType[],
   maxAdvantageTraits = 1,
   maxUpside = 0
@@ -116,7 +117,7 @@ export async function getOponents(
   const used: number[] = [];
   await Promise.all(
     adventurers.map(async adv => {
-      const enemies = await getOponent(adv, maxAdvantageTraits, maxUpside);
+      const enemies = await getOponent(adv,true, maxAdvantageTraits, maxUpside);
 
       enemies.forEach(enemy => {
         if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
@@ -132,11 +133,53 @@ export async function getOponents(
 
   return map;
 }
-function compareAdventurers(advA: AdventurerType, advB: AdventurerType, reference: AdventurerType): number {
+export async function getOpponentsAuto(
+  adventurers: AdventurerType[],
+  winIt: boolean 
+  ): Promise<{ [key: number]: AdventurerType }> {
+  const map: { [key: number]: AdventurerType } = {};
+  const used: number[] = [];
+
+  let maxAdvantageTraits = 0;
+  let maxUpside = 1;
+
+  let remainingAdventurers = [...adventurers];
+
+  while (remainingAdventurers.length > 0 && maxAdvantageTraits <= 6) {
+    await Promise.all(
+      remainingAdventurers.map(async adv => {
+        const enemies = await getOponent(adv, winIt,  maxAdvantageTraits, maxUpside);
+
+        enemies.forEach(enemy => {
+          if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
+            if (!used.includes(enemy.tokenId)) {
+              map[adv.tokenId] = enemy;
+              used.push(enemy.tokenId);
+            }
+          }
+        });
+        return enemies;
+      })
+    );
+
+    remainingAdventurers = remainingAdventurers.filter(adv => !map[adv.tokenId]);
+
+    if (maxUpside < 5) {
+      maxUpside++;
+    } else {
+      maxUpside = 1;
+      maxAdvantageTraits++;
+    }
+  }
+
+  return map;
+}
+function compareAdventurers(advA: AdventurerType, advB: AdventurerType, reference: AdventurerType, winIt: boolean): number {
   const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'];
   let scoreA = 0;
   let scoreB = 0;
   let losingPreference = 3;
+if (winIt) losingPreference = 1;
 
   categories.forEach(category => {
     const diffA = advA[category] - reference[category];
@@ -157,7 +200,7 @@ function compareAdventurers(advA: AdventurerType, advB: AdventurerType, referenc
 
   return scoreA > scoreB ? -1 : 1;
 }
-function isSuitableOpponent(advA: AdventurerType, advB: AdventurerType, maxAdvantageTraits: number): boolean {
+function isSuitableOpponent(advA: AdventurerType, advB: AdventurerType, maxAdvantageTraits: number, winIt: boolean): boolean {
   let weakerCategories = 0;
 
   if (advA.charisma >= advB.charisma) {

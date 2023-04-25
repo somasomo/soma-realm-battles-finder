@@ -47,6 +47,10 @@ export function Adventurer({ adventurer, oponent }: { adventurer: AdventurerType
           <div className="trait-text">battles</div>
           <div className={`trait-value ${!oponent ? 'empty': oponent.battles > adventurer.battles ? 'lower': oponent.battles === adventurer.battles ? 'equal': 'greater'}`}>{adventurer.battles}</div>
         </div>
+        <div className="trait">
+          <div className="trait-text">klass</div>
+          <div className={`trait-value ${!oponent ? 'empty': oponent.battles > adventurer.battles ? 'lower': oponent.battles === adventurer.battles ? 'equal': 'greater'}`}>{adventurer.klass}</div>
+        </div>
       </div>
       <style jsx>{`
         .wrapper {
