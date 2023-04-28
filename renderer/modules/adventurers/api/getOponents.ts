@@ -49,7 +49,8 @@ async function getOponent(
   const max_constitution = adventurer.constitution + maxUpside <= 0 ? 0 : adventurer.constitution + maxUpside;
   const min_dexterity = adventurer.dexterity - maxDownside <= 0 ? 0 : adventurer.dexterity - maxDownside;
   const max_dexterity = adventurer.dexterity + maxUpside <= 0 ? 0 : adventurer.dexterity + maxUpside;
-
+  
+  const sevendays = 7 * 24 * 60 * 60 ;
   const { data } = await axios.post(graphEndpoint, {
     query: `
         query ExmapleQuery{
@@ -64,6 +65,7 @@ async function getOponent(
             strength_lte: ${max_strength},
             owner_not: "${adventurer.owner}"
             lastBattledAt_lte: ${Math.round(Date.now() / 1000)},
+            lastBattledAt_gte: ${Math.round(Date.now() / 1000) - sevendays},
             constitution_gte: ${min_constitution},
             constitution_lte: ${max_constitution},
             dexterity_gte: ${min_dexterity},
