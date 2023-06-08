@@ -7,6 +7,7 @@ import abi from '../fight.abi.json';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { getProof } from '../fight';
 import { BigNumber } from 'ethers';
+import { Button } from '@/modules/layout/components/Button';
 export default function Adventurers({ address }: { address: string }) {
   const [adventurers, setAdventurers] = useState<AdventurerType[]>([]);
   const [maxDownside, setMaxDownside] = useState(20);
@@ -14,10 +15,28 @@ export default function Adventurers({ address }: { address: string }) {
   const [oponents, setOponents] = useState<any>([]);
 
   const [fighting, setFighting] = useState<number[]>([]);
+
+  const selectAll = () => {
+    setFighting(adventurers.map(i => i.tokenId));
+  };
+
+  const selectNone = () => {
+    setFighting([]);
+  };
+
+  const [start, setStart] = useState(1);
+  const [end, setEnd] = useState(50);
+
+  const selectX = () => {
+
+    setFighting(adventurers.slice(start === 0 ? 0 : start - 1, end).map(i => i.tokenId));
+  };
+
   useEffect(() => {
     const fetchADV = async () => {
       const adv = await getAdventurers(address);
       setAdventurers(adv);
+      setEnd(adv.length > 100 ? 50 : adv.length)
     };
     fetchADV();
   }, [address]);
@@ -33,12 +52,12 @@ export default function Adventurers({ address }: { address: string }) {
   });
 
   const { data, writeAsync, error, isError, isLoading } = useContractWrite({
-    address: '0x60f8C904b8CC00713f83D0Cd8ed22F1647432f62',
+    address: '0x476a8d94b93c9777defa3de8c0282876e546bf7c',
     abi: abi,
     functionName: 'fight',
     mode: 'recklesslyUnprepared',
     overrides: {
-      gasLimit: BigNumber.from(9000000)
+      gasLimit: BigNumber.from(fighting.length * 600000).gt(5000000) ? BigNumber.from(fighting.length * 600000) : BigNumber.from(5000000)
     }
   });
 
@@ -100,13 +119,13 @@ export default function Adventurers({ address }: { address: string }) {
                 }}
               >
                 <div>
-                  <h3>Adventurer</h3>
-                  <Adventurer adventurer={adv} />
+                  <h3>Adventurer {index+1} - (#{adv.tokenId}) </h3>
+                  <Adventurer adventurer={adv} oponent={oponents[adv.tokenId]} />
                 </div>
                 {oponents[adv.tokenId] && (
                   <div>
                     <h3>OPONENT</h3>
-                    <Adventurer adventurer={oponents[adv.tokenId]} />
+                    <Adventurer adventurer={oponents[adv.tokenId]} oponent={adv} />
                   </div>
                 )}
               </div>
@@ -114,34 +133,64 @@ export default function Adventurers({ address }: { address: string }) {
           })}
       </div>
       <div className="actions">
-        <button onClick={fetchOponents}>Find opponents</button>
-        {Object.keys(oponents).length > 0 && fighting.length > 0 && (
-          <button onClick={fight}>
-            {isLoading ? 'Loading...' : `Fight with ${fighting.length} adventurers`}
-          </button>
-        )}
-        {fighting.length === 0 && <div>Select some adventurers first</div>}
-        {error && JSON.stringify(error, null, 2)}
-        {isError && <div>Error on the transaction</div>}
+        <div style={{ margin: '10px' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              padding: '15px',
+              border: '1px solid black',
+              marginBottom: '10px'
+            }}
+          >
+            <div>
+              <label>
+                Maximum Trait Downside (The difference in power to the downside for each Adventurer)
+              </label>
+              <input
+                type="number"
+                value={maxDownside}
+                onChange={e => {
+                  setMaxDownside(parseInt(e.target.value));
+                }}
+              />
+            </div>
+            <div>
+              <label>Maximum Trait Upside (The difference in power to the upside)</label>
+              <input
+                type="number"
+                value={maxUpside}
+                onChange={e => {
+                  setMaxUpside(parseInt(e.target.value));
+                }}
+              />
+            </div>
+          </div>
 
-        <h3>Max difference down</h3>
-        <input
-          type="number"
-          value={maxDownside}
-          onChange={e => {
-            setMaxDownside(parseInt(e.target.value));
-          }}
-        />
-
-        <h3>Max difference up</h3>
-        <input
-          type="number"
-          value={maxUpside}
-          onChange={e => {
-            setMaxUpside(parseInt(e.target.value));
-          }}
-        />
+          <Button onClick={fetchOponents}>Find opponents</Button>
+        </div>
       </div>
+
+      <div style={{ margin: '10px' }}>
+        <Button onClick={selectAll}>Select all</Button>
+        <Button onClick={selectNone}>Select none</Button>
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+        <Button onClick={selectX}>Select {end + 1 - start} (From {start} to {end})</Button>
+        <input type="number" value={start} onChange={e => setStart(parseInt(e.target.value))} />
+        <input type="number" value={end} onChange={e => setEnd(parseInt(e.target.value))} />
+        </div>
+      </div>
+
+      {Object.keys(oponents).length > 0 && fighting.length > 0 && (
+        <div style={{ margin: '10px' }}>
+          <Button primary onClick={fight}>
+            {isLoading ? 'Loading...' : `Fight with ${fighting.length} adventurers`}
+          </Button>
+        </div>
+      )}
+      {fighting.length === 0 && <div>Select some adventurers first</div>}
+      {error && JSON.stringify(error, null, 2)}
+      {isError && <div>Error on the transaction</div>}
 
       <style jsx>{`
         .wrapper {
@@ -153,6 +202,7 @@ export default function Adventurers({ address }: { address: string }) {
           margin: 10px;
           display: flex;
           cursor: pointer;
+          padding: 15px;
         }
 
         .adventurer.active {
