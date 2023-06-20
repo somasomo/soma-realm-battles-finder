@@ -12,4 +12,5 @@ export type AdventurerType = {
   intelligence: number;
   tokenId: number;
   archetype: string;
+  klass: number;
 };

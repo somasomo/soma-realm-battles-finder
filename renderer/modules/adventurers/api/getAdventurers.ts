@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { ethers } from 'ethers';
 import { AdventurerType } from '../types/adventurer';
 
 
@@ -8,11 +7,14 @@ const graphEndpoint = 'https://api.thegraph.com/subgraphs/name/jona/realm-v2';
 export const getAdventurers = async (address: string): Promise<AdventurerType[]> => {
   const { data } = await axios.post(graphEndpoint, {
     query: `
-    query ExmapleQuery{
-      adventurers(first: 1000, where: { owner: "${address.toLowerCase()}"}) {
+    query ExmapleQuery {
+      adventurers(first: 1000, where: { 
+      attackEpoch_not: "${currentEpoch()}",
+      owner: "${address.toLowerCase()}"
+      }) {
         id
         address
-        tokenId,
+        tokenId
         createdAt
         owner
         archetype
@@ -27,7 +29,7 @@ export const getAdventurers = async (address: string): Promise<AdventurerType[]>
         intelligence
         charisma
         constitution
-        wisdom
+        wisdom        
       }
     }
     `
@@ -40,7 +42,11 @@ export const getAdventurers = async (address: string): Promise<AdventurerType[]>
       intelligence: parseInt(i.intelligence, 10),
       charisma: parseInt(i.charisma, 10),
       constitution: parseInt(i.constitution, 10),
-      wisdom: parseInt(i.wisdom, 10)
+      wisdom: parseInt(i.wisdom, 10),
+      klass: parseInt(i.klass, 10)
     };
   });
 };
+function currentEpoch() {
+  return Math.floor((4826692800 - Math.floor(Date.now() / 1000)) / 86400)
+}

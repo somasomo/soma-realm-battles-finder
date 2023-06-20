@@ -1,18 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getAdventurers } from '../api/getAdventurers';
-import { getOponents } from '../api/getOponents';
+import { getOpponents } from '../api/getOponents';
+import { getOpponentsAuto } from '../api/getOponents';
+import { getOpponentsAutoLootboxes } from '../api/getOponents';
 import { AdventurerType } from '../types/adventurer';
 import { Adventurer } from './Adventurer';
 import abi from '../fight.abi.json';
+import trainabi from '../train.abi.json';
+import collectabi from '../collect.abi.json';
+import collectRealmabi from '../collectRealm.abi.json';
 import { useContractWrite, usePrepareContractWrite } from 'wagmi';
 import { getProof } from '../fight';
 import { BigNumber } from 'ethers';
 import { Button } from '@/modules/layout/components/Button';
+import { fillCollectiblesReactor } from './fillCollectibles';
+import { fillCollectiblesRealm } from './fillCollectibles';
 export default function Adventurers({ address }: { address: string }) {
   const [adventurers, setAdventurers] = useState<AdventurerType[]>([]);
-  const [maxDownside, setMaxDownside] = useState(20);
-  const [maxUpside, setMaxUpside] = useState(0);
+  const [strengthFactor, setStrengthFactor] = useState(2.0);
+  const [levelSwitch, setLevelSwitch] = useState(13);
   const [oponents, setOponents] = useState<any>([]);
+  const skillLabels = ['Str', 'Dex', 'Con', 'Int', 'Wis', 'Cha'];
 
   const [fighting, setFighting] = useState<number[]>([]);
 
@@ -41,8 +49,14 @@ export default function Adventurers({ address }: { address: string }) {
     fetchADV();
   }, [address]);
 
-  const fetchOponents = async () => {
-    const op = await getOponents(adventurers, maxDownside, maxUpside);
+  const fetchOponentsAuto = async () => {
+    const op = await getOpponentsAuto(adventurers, false, levelSwitch);
+
+    setOponents(op);
+  };
+
+  const fetchOponentsAutoLootboxes = async () => {
+    const op = await getOpponentsAutoLootboxes(adventurers, levelSwitch, strengthFactor);
 
     setOponents(op);
   };
@@ -52,7 +66,7 @@ export default function Adventurers({ address }: { address: string }) {
   });
 
   const { data, writeAsync, error, isError, isLoading } = useContractWrite({
-    address: '0x5a5c765b4fd4218bbf63fc35cbb2a42cd9b41f19',
+    address: '0x5A5c765b4fD4218BbF63fc35CBB2A42cD9B41f19',
     abi: abi,
     functionName: 'fight',
     mode: 'recklesslyUnprepared',
@@ -100,8 +114,153 @@ export default function Adventurers({ address }: { address: string }) {
     }
   };
 
+
+  function openPopup(message) {
+    const popupWindow = window.open("", "popupWindow", "width=400, height=200");
+    popupWindow.document.write(`<html><head><title>Popup</title></head><body>${message}</body></html>`);
+  }
+
+  const {
+    data: collectData,
+    writeAsync: collectWriteAsync,
+    error: collectError,
+    isError: collectIsError,
+    isLoading: collectIsLoading,
+  } = useContractWrite({
+    address: '0x0fd948feCD2763792EB2f898CF800d0Ec2C09105',
+    abi: collectabi,
+    functionName: 'collect',
+    mode: 'recklesslyUnprepared',
+  });
+
+  const collectReactor = async () => {
+    // Set your required values here
+    const _realmIds: any[] = []; // uint256[]
+    const _collectibleIds: number[][] = []; // uint256[][]
+    const _quantities: number[][] = []; // uint256[][]
+    fillCollectiblesReactor(_realmIds, _collectibleIds, _quantities);
+
+
+    if (collectWriteAsync) {
+      try {
+        await collectWriteAsync({
+          recklesslySetUnpreparedArgs: [
+            _realmIds,
+            _collectibleIds,
+            _quantities,
+          ],
+        });
+      } catch (e) {
+        openPopup("collectWriteAsync failed" + [_realmIds, _collectibleIds.length, _collectibleIds[0].length, _quantities.length, , _collectibleIds[0], , _collectibleIds[1], , _collectibleIds[2]]);
+      }
+    }
+  };
+
+  const {
+    data: collectRealmData,
+    writeAsync: collectRealmWriteAsync,
+    error: collectRealmError,
+    isError: collectRealmIsError,
+    isLoading: collectRealmIsLoading,
+  } = useContractWrite({
+    address: '0xC0aB359035F2a3A6181E963d4dd6d4746Bc22cc2',
+    abi: collectRealmabi,
+    functionName: 'collect',
+    mode: 'recklesslyUnprepared',
+  });
+
+  const collectRealm = async () => {
+    // Set your required values here
+    const _realmIds: any[] = []; // uint256[]
+    const _collectibleIds: number[][] = []; // uint256[][]
+    const _quantities: number[][] = []; // uint256[][]
+    fillCollectiblesRealm(_realmIds, _collectibleIds, _quantities);
+
+
+    if (collectRealmWriteAsync) {
+      try {
+        await collectRealmWriteAsync({
+          recklesslySetUnpreparedArgs: [
+            _realmIds,
+            _collectibleIds,
+            _quantities,
+          ],
+        });
+      } catch (e) {
+        openPopup("collectRealmWriteAsync failed" + [_realmIds, _collectibleIds.length, _collectibleIds[0].length, _quantities.length, , _collectibleIds[0], , _collectibleIds[1], , _collectibleIds[2]]);
+      }
+    }
+  };
+
+  const {
+    data: trainData,
+    writeAsync: trainWriteAsync,
+    error: trainError,
+    isError: trainIsError,
+    isLoading: trainIsLoading,
+  } = useContractWrite({
+    address: '0x771342c7462DFbFc0d083A7ffA33E08931CADFC6',
+    abi: trainabi,
+    functionName: 'train',
+    mode: 'recklesslyUnprepared',
+  });
+
+  const [skills, setSkills] = useState(Array(6).fill(0));
+
+  const handleSkillInput = (e, index) => {
+    const value = parseInt(e.target.value);
+    const sum = skills.reduce((a, b) => a + b, 0) - skills[index] + value;
+    if (sum <= 6) {
+      const newSkills = [...skills];
+      newSkills[index] = value;
+      setSkills(newSkills);
+    }
+  };
+
+  const trainMischief = async () => {
+    console.log("Training Mischief with skills:", skills);
+    trainThisKlass(2);
+  };
+
+  const trainChaos = () => {
+    console.log("Training Chaos with skills:", skills);
+    trainThisKlass(1);
+  };
+
+  const trainTranquility = () => {
+    console.log("Training Tranquility with skills:", skills);
+    trainThisKlass(3);
+  };
+
   return (
     <div>
+      <div style={{ position: 'absolute', top: 50, left: 0, margin: '10px' }}>
+        <Button onClick={collectReactor}>Collect reactor production</Button>
+        <Button onClick={collectRealm}>Collect realm production</Button>
+      </div>
+      <div style={{ marginTop: "20px" }}>
+        <h3>Training</h3>
+        <div>
+          {Array(6).fill(null).map((_, i) => (
+            <div key={`skill-input-${i}`} style={{ display: "inline-block", marginRight: "10px" }}>
+              <label>{skillLabels[i]}</label>
+              <input
+                key={`skill-${i}`}
+                type="number"
+                min="0"
+                max="6"
+                value={skills[i]}
+                onChange={e => handleSkillInput(e, i)}
+              />
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: "10px" }}>
+          <Button onClick={trainMischief}>Train Mischief</Button>
+          <Button onClick={trainChaos}>Train Chaos</Button>
+          <Button onClick={trainTranquility}>Train Tranquility</Button>
+        </div>
+      </div>
       <h2>My adventurers</h2>
       <div className="wrapper">
         {adventurers &&
@@ -119,7 +278,7 @@ export default function Adventurers({ address }: { address: string }) {
                 }}
               >
                 <div>
-                  <h3>Adventurer {index+1} - (#{adv.tokenId}) </h3>
+                  <h3>Adventurer {index + 1} - (#{adv.tokenId}) </h3>
                   <Adventurer adventurer={adv} oponent={oponents[adv.tokenId]} />
                 </div>
                 {oponents[adv.tokenId] && (
@@ -144,30 +303,34 @@ export default function Adventurers({ address }: { address: string }) {
             }}
           >
             <div>
+              <label>Level switch</label>
+              <input
+                type="number"
+                value={levelSwitch}
+                onChange={e => {
+                  setLevelSwitch(parseInt(e.target.value));
+                }}
+              />
+            </div>
+
+            <div>
               <label>
-                Maximum Trait Downside (The difference in power to the downside for each Adventurer)
+                Strength Factor (Opponent trait / Adventurer trait)
               </label>
               <input
                 type="number"
-                value={maxDownside}
+                step="0.1"
+                value={strengthFactor}
                 onChange={e => {
-                  setMaxDownside(parseInt(e.target.value));
+                  setStrengthFactor(parseFloat(e.target.value));
                 }}
               />
             </div>
-            <div>
-              <label>Maximum Trait Upside (The difference in power to the upside)</label>
-              <input
-                type="number"
-                value={maxUpside}
-                onChange={e => {
-                  setMaxUpside(parseInt(e.target.value));
-                }}
-              />
-            </div>
+
           </div>
 
-          <Button onClick={fetchOponents}>Find opponents</Button>
+          <Button onClick={fetchOponentsAuto}>Automatically Optimize to Lose</Button>
+          <Button onClick={fetchOponentsAutoLootboxes}>Automatically Optimize for Anima and Lootboxes</Button>
         </div>
       </div>
 
@@ -175,9 +338,9 @@ export default function Adventurers({ address }: { address: string }) {
         <Button onClick={selectAll}>Select all</Button>
         <Button onClick={selectNone}>Select none</Button>
         <div style={{ display: 'flex', flexDirection: 'row' }}>
-        <Button onClick={selectX}>Select {end + 1 - start} (From {start} to {end})</Button>
-        <input type="number" value={start} onChange={e => setStart(parseInt(e.target.value))} />
-        <input type="number" value={end} onChange={e => setEnd(parseInt(e.target.value))} />
+          <Button onClick={selectX}>Select {end + 1 - start} (From {start} to {end})</Button>
+          <input type="number" value={start} onChange={e => setStart(parseInt(e.target.value))} />
+          <input type="number" value={end} onChange={e => setEnd(parseInt(e.target.value))} />
         </div>
       </div>
 
@@ -212,4 +375,43 @@ export default function Adventurers({ address }: { address: string }) {
       `}</style>
     </div>
   );
+
+  async function trainThisKlass(
+    klass: number,
+  ) {
+    const ownerAddresses: string[] = [];
+    const adventurerIds: number[] = [];
+    const proofs: string[][] = [];
+    const traitIds: number[][] = [];
+    const traitAmounts: number[][] = [];
+
+    const getTraitIds = () => [2, 3, 4, 5, 6, 7];
+
+    adventurers.forEach(adv => {
+      if (adv.klass === klass) {
+        proofs.push([]);
+        ownerAddresses.push('0x747910B74D2651A06563C3182838EAE4120F4277');
+        adventurerIds.push(parseInt(adv.tokenId as any, 10));
+        traitIds.push(getTraitIds());
+        traitAmounts.push(skills);
+      }
+    });
+
+    if (trainWriteAsync) {
+      try {
+        await trainWriteAsync({
+          recklesslySetUnpreparedArgs: [
+            ownerAddresses,
+            adventurerIds,
+            proofs,
+            traitIds,
+            traitAmounts,
+          ],
+        });
+      } catch (e) {
+        openPopup("trainWriteAsync failed" + [adventurers.length, ownerAddresses.length, adventurerIds, trainIsError, trainError]);
+      }
+    }
+  }
 }
+
