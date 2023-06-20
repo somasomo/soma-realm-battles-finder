@@ -34,12 +34,13 @@ async function getOponent(
   adventurer: AdventurerType,
   winIt: boolean,
   maxAdvantageTraits = 1,
-  opponents: AdventurerType[]
+  opponents: AdventurerType[],
+  levelSwitch:number = 13
 ): Promise<AdventurerType[]> {
   const advs = opponents;
 
   return advs
-    .filter(enemy => adventurer.level > 13)
+    .filter(enemy => adventurer.level > levelSwitch)
     .filter(enemy => enemy.tokenId !== adventurer.tokenId)
     .filter(enemy => isSuitableOpponent(adventurer, enemy, maxAdvantageTraits, winIt))
     .sort((a, b) => compareAdventurers(a, b, adventurer, winIt));
@@ -48,15 +49,17 @@ async function getOponent(
 async function getOponentLootboxes(
   adventurer: AdventurerType,
   maxAdvantageTraits = 1,
-  opponents: AdventurerType[]
+  opponents: AdventurerType[],
+  levelSwitch:number = 13,
+  strengthFactor :number = 2.0
 ): Promise<AdventurerType[]> {
   const advs = opponents;
 
   return advs
-    .filter(enemy => adventurer.level <= 13)
+    .filter(enemy => adventurer.level <= levelSwitch)
     .filter(enemy => enemy.tokenId !== adventurer.tokenId)
     .filter(enemy => isSuitableOpponent(adventurer, enemy, maxAdvantageTraits, false))
-    .sort((a, b) => compareAdventurersLootboxes(a, b, adventurer));
+    .sort((a, b) => compareAdventurersLootboxes(a, b, adventurer, strengthFactor));
 }
 
 async function OponentQuery(adventurer: AdventurerType, maxUpside: number) {
@@ -74,6 +77,7 @@ async function OponentQuery(adventurer: AdventurerType, maxUpside: number) {
   const max_dexterity = adventurer.dexterity + maxUpside;
   const sevenDaysInSeconds = 7 * 24 * 60 * 60;
   const sevenDaysAgoTimestamp = Math.round((Date.now() / 1000) - sevenDaysInSeconds);
+
 
   const { data } = await axios.post(graphEndpoint, {
     query: `
@@ -161,7 +165,8 @@ export async function getOpponents(
 }
 export async function getOpponentsAuto(
   adventurers: AdventurerType[],
-  winIt: boolean 
+  winIt: boolean ,
+  levelSwitch: number
   ): Promise<{ [key: number]: AdventurerType }> {
   const map: { [key: number]: AdventurerType } = {};
   const used: number[] = [];
@@ -177,7 +182,7 @@ export async function getOpponentsAuto(
     await Promise.all(
       remainingAdventurers.map(async adv => {
         
-        const enemies = await getOponent(adv, winIt,  maxAdvantageTraits, opponents);
+        const enemies = await getOponent(adv, winIt,  maxAdvantageTraits, opponents, levelSwitch);
 
         enemies.forEach(enemy => {
           if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
@@ -230,7 +235,7 @@ if (winIt) losingPreference = 1;
 
   return scoreA > scoreB ? -1 : 1;
 }
-function compareAdventurersLootboxes(advA: AdventurerType, advB: AdventurerType, reference: AdventurerType): number {
+function compareAdventurersLootboxes(advA: AdventurerType, advB: AdventurerType, reference: AdventurerType, strengthFactor: number): number {
   const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'];
   let scoreA = 0;
   let scoreB = 0;
@@ -240,22 +245,21 @@ function compareAdventurersLootboxes(advA: AdventurerType, advB: AdventurerType,
     const ratioA = advA[category] / reference[category];
     const ratioB = advB[category] / reference[category];
 
-    scoreA += calculateScore(ratioA, losingPreference);
-    scoreB += calculateScore(ratioB, losingPreference);
+    scoreA += calculateScore(ratioA, losingPreference, strengthFactor);
+    scoreB += calculateScore(ratioB, losingPreference, strengthFactor);
   });
 
   return scoreA > scoreB ? -1 : 1;
 }
-function calculateScore(ratio: number, losingPreference: number): number {
+function calculateScore(ratio: number, losingPreference: number, strengthFactor: number): number {
   let score = 0;
-  let boundary = 2.0;
 
   if (ratio >= 0.45 && ratio <= 0.999) {
     score = Math.pow(2 * Math.abs(ratio - 1), 2);
-  } else if (ratio > 1.001 && ratio <= boundary) {
-    score = (Math.pow((ratio - 1) / (boundary - 1), 2)) * losingPreference;
-  } else if (ratio > boundary && ratio <= 20) {
-    score = (Math.pow((ratio - 20) / (boundary - 20), 2)) * losingPreference;
+  } else if (ratio > 1.001 && ratio <= strengthFactor) {
+    score = (Math.pow((ratio - 1) / (strengthFactor - 1), 2)) * losingPreference;
+  } else if (ratio > strengthFactor && ratio <= 20) {
+    score = (Math.pow((ratio - 20) / (strengthFactor - 20), 2)) * losingPreference;
   }
 
   return score;
@@ -286,7 +290,10 @@ function isSuitableOpponent(advA: AdventurerType, advB: AdventurerType, maxAdvan
 }
 
 export async function getOpponentsAutoLootboxes(
-  adventurers: AdventurerType[]  ): Promise<{ [key: number]: AdventurerType }> {
+  adventurers: AdventurerType[],
+  levelSwitch: number,
+  strengthFactor: number
+    ): Promise<{ [key: number]: AdventurerType }> {
   const map: { [key: number]: AdventurerType } = {};
   const used: number[] = [];
 
@@ -299,7 +306,7 @@ export async function getOpponentsAutoLootboxes(
   while (remainingAdventurers.length > 0 && maxAdvantageTraits <= 6) {
     await Promise.all(
       remainingAdventurers.map(async adv => {
-        const enemies = await getOponentLootboxes(adv, maxAdvantageTraits, opponents);
+        const enemies = await getOponentLootboxes(adv, maxAdvantageTraits, opponents, levelSwitch, strengthFactor);
 
         enemies.forEach(enemy => {
           if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {

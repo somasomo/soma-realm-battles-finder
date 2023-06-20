@@ -17,8 +17,8 @@ import { fillCollectiblesReactor } from './fillCollectibles';
 import { fillCollectiblesRealm } from './fillCollectibles';
 export default function Adventurers({ address }: { address: string }) {
   const [adventurers, setAdventurers] = useState<AdventurerType[]>([]);
-  const [maxAdvantageTraits, setMaxAdvantageTraits] = useState(1);
-  const [maxUpside, setMaxUpside] = useState(0);
+  const [strengthFactor, setStrengthFactor] = useState(2.0);
+  const [levelSwitch, setLevelSwitch] = useState(13);
   const [oponents, setOponents] = useState<any>([]);
   const skillLabels = ['Str', 'Dex', 'Con', 'Int', 'Wis', 'Cha'];
 
@@ -49,19 +49,14 @@ export default function Adventurers({ address }: { address: string }) {
     fetchADV();
   }, [address]);
 
-  const fetchOponents = async () => {
-    const op = await getOpponents(adventurers, maxAdvantageTraits, maxUpside);
-
-    setOponents(op);
-  };
   const fetchOponentsAuto = async () => {
-    const op = await getOpponentsAuto(adventurers, false);
+    const op = await getOpponentsAuto(adventurers, false, levelSwitch);
 
     setOponents(op);
   };
 
   const fetchOponentsAutoLootboxes = async () => {
-    const op = await getOpponentsAutoLootboxes(adventurers);
+    const op = await getOpponentsAutoLootboxes(adventurers, levelSwitch, strengthFactor);
 
     setOponents(op);
   };
@@ -308,30 +303,32 @@ export default function Adventurers({ address }: { address: string }) {
             }}
           >
             <div>
+              <label>Level switch</label>
+              <input
+                type="number"
+                value={levelSwitch}
+                onChange={e => {
+                  setLevelSwitch(parseInt(e.target.value));
+                }}
+              />
+            </div>
+
+            <div>
               <label>
-                Maximum Traits with Advantage
+                Strength Factor (Opponent trait / Adventurer trait)
               </label>
               <input
                 type="number"
-                value={maxAdvantageTraits}
+                step="0.1"
+                value={strengthFactor}
                 onChange={e => {
-                  setMaxAdvantageTraits(parseInt(e.target.value));
+                  setStrengthFactor(parseFloat(e.target.value));
                 }}
               />
             </div>
-            <div>
-              <label>Maximum Trait Upside (The difference in power to the upside)</label>
-              <input
-                type="number"
-                value={maxUpside}
-                onChange={e => {
-                  setMaxUpside(parseInt(e.target.value));
-                }}
-              />
-            </div>
+
           </div>
 
-          <Button onClick={fetchOponents}>Find opponents</Button>
           <Button onClick={fetchOponentsAuto}>Automatically Optimize to Lose</Button>
           <Button onClick={fetchOponentsAutoLootboxes}>Automatically Optimize for Anima and Lootboxes</Button>
         </div>
