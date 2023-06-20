@@ -50,12 +50,14 @@ export default function Adventurers({ address }: { address: string }) {
   }, [address]);
 
   const fetchOponentsAuto = async () => {
+    if(!adventurers.length) return;
     const op = await getOpponentsAuto(adventurers, false, levelSwitch);
 
     setOponents(op);
   };
 
   const fetchOponentsAutoLootboxes = async () => {
+    if(!adventurers.length) return;
     const op = await getOpponentsAutoLootboxes(adventurers, levelSwitch, strengthFactor);
 
     setOponents(op);
