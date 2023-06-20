@@ -210,40 +210,40 @@ export async function getOpponentsAuto(
   return map;
 }
 function compareAdventurers(advA: AdventurerType, advB: AdventurerType, reference: AdventurerType, winIt: boolean): number {
-  const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'];
+  const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'] as (keyof AdventurerType)[];
   let scoreA = 0;
   let scoreB = 0;
   let losingPreference = 3;
 if (winIt) losingPreference = 1;
 
-  categories.forEach(category => {
-    const diffA = advA[category] - reference[category];
-    const diffB = advB[category] - reference[category];
+  categories.forEach((category: keyof AdventurerType) => {
+    const diffA = advA[category] as number -( reference[category] as number);
+    const diffB = advB[category]  as number - (reference[category] as number);
 
     if (diffA > 0) {
       scoreA += (1 / diffA) * losingPreference; // Reward for being stronger with smaller difference
     } else {
-      scoreA -= diffA/reference[category]; // Reward for being weaker with larger difference
+      scoreA -= diffA/(reference[category] as number) ; // Reward for being weaker with larger difference
     }
 
     if (diffB > 0) {
       scoreB += (1 / diffB) * losingPreference; // Reward for being stronger with smaller difference
     } else {
-      scoreB -= diffB/reference[category]; // Reward for being weaker with larger difference
+      scoreB -= diffB/(reference[category] as number); // Reward for being weaker with larger difference
     }
   });
 
   return scoreA > scoreB ? -1 : 1;
 }
 function compareAdventurersLootboxes(advA: AdventurerType, advB: AdventurerType, reference: AdventurerType, strengthFactor: number): number {
-  const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'];
+  const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'] as (keyof AdventurerType)[];
   let scoreA = 0;
   let scoreB = 0;
   let losingPreference = 3;
 
   categories.forEach(category => {
-    const ratioA = advA[category] / reference[category];
-    const ratioB = advB[category] / reference[category];
+    const ratioA = (advA[category] as number) /( reference[category] as number);
+    const ratioB = (advB[category] as number) /( reference[category] as number);
 
     scoreA += calculateScore(ratioA, losingPreference, strengthFactor);
     scoreB += calculateScore(ratioB, losingPreference, strengthFactor);
@@ -389,7 +389,7 @@ async function getAllOpponents(adventurer: AdventurerType) {
   
   return adventurers;
 }
-function openPopup(message) {
+function openPopup(message: string) {
   const popupWindow = window.open("", "popupWindow", "width=400, height=200");
-  popupWindow.document.write(`<html><head><title>Popup</title></head><body>${message}</body></html>`);
+  (popupWindow as Window).document.write(`<html><head><title>Popup</title></head><body>${message}</body></html>`);
 }
