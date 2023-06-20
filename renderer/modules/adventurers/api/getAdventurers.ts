@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { ethers } from 'ethers';
 import { AdventurerType } from '../types/adventurer';
 
 
@@ -15,7 +14,7 @@ export const getAdventurers = async (address: string): Promise<AdventurerType[]>
       }) {
         id
         address
-        tokenId,
+        tokenId
         createdAt
         owner
         archetype

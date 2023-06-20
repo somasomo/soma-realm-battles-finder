@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getAdventurers } from '../api/getAdventurers';
 import { getOpponents } from '../api/getOponents';
 import { getOpponentsAuto } from '../api/getOponents';
+import { getOpponentsAutoLootboxes } from '../api/getOponents';
 import { AdventurerType } from '../types/adventurer';
 import { Adventurer } from './Adventurer';
 import abi from '../fight.abi.json';
@@ -59,8 +60,8 @@ export default function Adventurers({ address }: { address: string }) {
     setOponents(op);
   };
 
-  const fetchOponentsAutoWin = async () => {
-    const op = await getOpponentsAuto(adventurers, true);
+  const fetchOponentsAutoLootboxes = async () => {
+    const op = await getOpponentsAutoLootboxes(adventurers);
 
     setOponents(op);
   };
@@ -70,7 +71,7 @@ export default function Adventurers({ address }: { address: string }) {
   });
 
   const { data, writeAsync, error, isError, isLoading } = useContractWrite({
-    address: '0xcfcd2371f19b31f9500f4581ac52ffbfaabbb18e',
+    address: '0x5A5c765b4fD4218BbF63fc35CBB2A42cD9B41f19',
     abi: abi,
     functionName: 'fight',
     mode: 'recklesslyUnprepared',
@@ -203,7 +204,7 @@ export default function Adventurers({ address }: { address: string }) {
     isError: trainIsError,
     isLoading: trainIsLoading,
   } = useContractWrite({
-    address: '0x7c9b4ab180Ac02cC3edD0916Af6502D719143125',
+    address: '0x771342c7462DFbFc0d083A7ffA33E08931CADFC6',
     abi: trainabi,
     functionName: 'train',
     mode: 'recklesslyUnprepared',
@@ -332,7 +333,7 @@ export default function Adventurers({ address }: { address: string }) {
 
           <Button onClick={fetchOponents}>Find opponents</Button>
           <Button onClick={fetchOponentsAuto}>Automatically Optimize to Lose</Button>
-          {/* <Button onClick={fetchOponentsAutoWin}>Automatically Optimize to Win</Button> */}
+          <Button onClick={fetchOponentsAutoLootboxes}>Automatically Optimize for Anima and Lootboxes</Button>
         </div>
       </div>
 

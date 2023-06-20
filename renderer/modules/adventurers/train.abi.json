@@ -25,11 +25,6 @@
         "internalType": "address",
         "name": "_token",
         "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_vault",
-        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -113,6 +108,19 @@
   },
   {
     "inputs": [],
+    "name": "ANIMA",
+    "outputs": [
+      {
+        "internalType": "contract Anima",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "GATEWAY",
     "outputs": [
       {
@@ -152,36 +160,10 @@
   },
   {
     "inputs": [],
-    "name": "PARTICLE",
-    "outputs": [
-      {
-        "internalType": "contract IParticle",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "STORAGE",
     "outputs": [
       {
         "internalType": "contract IAdventurerTrainerStorage",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "VAULT",
-    "outputs": [
-      {
-        "internalType": "address",
         "name": "",
         "type": "address"
       }
