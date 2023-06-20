@@ -75,7 +75,6 @@ async function OponentQuery(adventurer: AdventurerType, maxUpside: number) {
   const sevenDaysInSeconds = 7 * 24 * 60 * 60;
   const sevenDaysAgoTimestamp = Math.round((Date.now() / 1000) - sevenDaysInSeconds);
 
-
   const { data } = await axios.post(graphEndpoint, {
     query: `
         query ExmapleQuery{
