@@ -30,12 +30,12 @@ function getProbWinning(advA: AdventurerType, advB: AdventurerType) {
   return prob;
 }
 
-async function getOponent(
+function getOponent(
   adventurer: AdventurerType,
   winIt: boolean,
   opponents: AdventurerType[],
-  levelSwitch:number = 13
-): Promise<AdventurerType[]> {
+  levelSwitch: number = 13
+): AdventurerType[] {
   const advs = opponents;
 
   return advs
@@ -47,8 +47,8 @@ async function getOponent(
 async function getOponentLootboxes(
   adventurer: AdventurerType,
   opponents: AdventurerType[],
-  levelSwitch:number = 13,
-  strengthFactor :number = 2.0
+  levelSwitch: number = 13,
+  strengthFactor: number = 2.0
 ): Promise<AdventurerType[]> {
   const advs = opponents;
 
@@ -139,29 +139,26 @@ export async function getOpponents(
   const used: number[] = [];
   let opponents = await getAllOpponents(adventurers[0]);
   //openPopup("opponent size " + opponents.length);
-  await Promise.all(
-    adventurers.map(async adv => {
-      const enemies = await getOponent(adv,true, opponents);
+  adventurers.map(adv => {
+    const enemies = getOponent(adv, true, opponents);
 
-      enemies.forEach(enemy => {
-        if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
-          if (!used.includes(enemy.tokenId)) {
-            map[adv.tokenId] = enemy;
-            used.push(enemy.tokenId);
-          }
+    enemies.forEach(enemy => {
+      if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
+        if (!used.includes(enemy.tokenId)) {
+          map[adv.tokenId] = enemy;
+          used.push(enemy.tokenId);
         }
-      });
-      return enemies;
-    })
-  );
-
+      }
+    });
+    return enemies;
+  })
   return map;
 }
 export async function getOpponentsAuto(
   adventurers: AdventurerType[],
-  winIt: boolean ,
+  winIt: boolean,
   levelSwitch: number
-  ): Promise<{ [key: number]: AdventurerType }> {
+): Promise<{ [key: number]: AdventurerType }> {
   const map: { [key: number]: AdventurerType } = {};
   const used: number[] = [];
 
@@ -173,22 +170,20 @@ export async function getOpponentsAuto(
   //openPopup("opponent size " + opponents.length);
 
 
-    await Promise.all(
-      remainingAdventurers.map(async adv => {
-        
-        const enemies = await getOponent(adv, winIt, opponents, levelSwitch);
+  remainingAdventurers.map(adv => {
 
-        enemies.forEach(enemy => {
-          if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
-            if (!used.includes(enemy.tokenId)) {
-              map[adv.tokenId] = enemy;
-              used.push(enemy.tokenId);
-            }
-          }
-        });
-        return enemies;
-      })
-    );
+    const enemies = getOponent(adv, winIt, opponents, levelSwitch);
+    console.log(enemies);
+    enemies.forEach(enemy => {
+      if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
+        if (!used.includes(enemy.tokenId)) {
+          map[adv.tokenId] = enemy;
+          used.push(enemy.tokenId);
+        }
+      }
+    });
+    return enemies;
+  })
 
   return map;
 }
@@ -199,19 +194,19 @@ function compareAdventurers(advA: AdventurerType, advB: AdventurerType, referenc
   let losingPreference = 5;
 
   categories.forEach((category: keyof AdventurerType) => {
-    const diffA = advA[category] as number -( reference[category] as number);
-    const diffB = advB[category]  as number - (reference[category] as number);
+    const diffA = advA[category] as number - (reference[category] as number);
+    const diffB = advB[category] as number - (reference[category] as number);
 
     if (diffA > 0) {
-      scoreA += Math.pow((1 / diffA),2) * losingPreference; // Reward for being stronger with smaller difference
+      scoreA += Math.pow((1 / diffA), 2) * losingPreference; // Reward for being stronger with smaller difference
     } else {
-      scoreA -= Math.pow(diffA/(reference[category] as number),2); // Reward for being weaker with larger difference
+      scoreA -= Math.pow(diffA / (reference[category] as number), 2); // Reward for being weaker with larger difference
     }
 
     if (diffB > 0) {
-      scoreB += Math.pow((1 / diffB),2) * losingPreference; // Reward for being stronger with smaller difference
+      scoreB += Math.pow((1 / diffB), 2) * losingPreference; // Reward for being stronger with smaller difference
     } else {
-      scoreB -= Math.pow(diffB/(reference[category] as number),2); // Reward for being weaker with larger difference
+      scoreB -= Math.pow(diffB / (reference[category] as number), 2); // Reward for being weaker with larger difference
 
     }
   });
@@ -225,8 +220,8 @@ function compareAdventurersLootboxes(advA: AdventurerType, advB: AdventurerType,
   let losingPreference = 3;
 
   categories.forEach(category => {
-    const ratioA = (advA[category] as number) /( reference[category] as number);
-    const ratioB = (advB[category] as number) /( reference[category] as number);
+    const ratioA = (advA[category] as number) / (reference[category] as number);
+    const ratioB = (advB[category] as number) / (reference[category] as number);
 
     scoreA += calculateScore(ratioA, losingPreference, strengthFactor);
     scoreB += calculateScore(ratioB, losingPreference, strengthFactor);
@@ -252,22 +247,22 @@ function isSuitableOpponent(advA: AdventurerType, advB: AdventurerType, maxAdvan
 
   if (advA.charisma >= advB.charisma) {
     weakerCategories++;
-  } 
+  }
   if (advA.strength >= advB.strength) {
     weakerCategories++;
-  } 
+  }
   if (advA.intelligence >= advB.intelligence) {
     weakerCategories++;
-  } 
+  }
   if (advA.constitution >= advB.constitution) {
     weakerCategories++;
-  } 
+  }
   if (advA.wisdom >= advB.wisdom) {
     weakerCategories++;
-  } 
+  }
   if (advA.dexterity >= advB.dexterity) {
     weakerCategories++;
-  } 
+  }
 
   return weakerCategories <= maxAdvantageTraits;
 }
@@ -276,7 +271,7 @@ export async function getOpponentsAutoLootboxes(
   adventurers: AdventurerType[],
   levelSwitch: number,
   strengthFactor: number
-    ): Promise<{ [key: number]: AdventurerType }> {
+): Promise<{ [key: number]: AdventurerType }> {
   const map: { [key: number]: AdventurerType } = {};
   const used: number[] = [];
 
@@ -284,21 +279,21 @@ export async function getOpponentsAutoLootboxes(
   let opponents = await getAllOpponents(adventurers[0]);
   //openPopup("opponent size " + opponents.length);
 
-    await Promise.all(
-      remainingAdventurers.map(async adv => {
-        const enemies = await getOponentLootboxes(adv, opponents, levelSwitch, strengthFactor);
+  await Promise.all(
+    remainingAdventurers.map(async adv => {
+      const enemies = await getOponentLootboxes(adv, opponents, levelSwitch, strengthFactor);
 
-        enemies.forEach(enemy => {
-          if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
-            if (!used.includes(enemy.tokenId)) {
-              map[adv.tokenId] = enemy;
-              used.push(enemy.tokenId);
-            }
+      enemies.forEach(enemy => {
+        if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
+          if (!used.includes(enemy.tokenId)) {
+            map[adv.tokenId] = enemy;
+            used.push(enemy.tokenId);
           }
-        });
-        return enemies;
-      })
-    );
+        }
+      });
+      return enemies;
+    })
+  );
   return map;
 }
 async function getAllOpponents(adventurer: AdventurerType) {
@@ -308,9 +303,9 @@ async function getAllOpponents(adventurer: AdventurerType) {
   let adventurers: AdventurerType[] = [];
   let size: number = 1000;
   let nextTokenId: number = 0;
-  while ( size == 1000) {
-  const { data } = await axios.post(graphEndpoint, {
-    query: `
+  while (size == 1000) {
+    const { data } = await axios.post(graphEndpoint, {
+      query: `
         query ExmapleQuery{
           adventurers(first: 1000, orderBy: tokenId, where: { 
             tokenId_gte: ${nextTokenId}
@@ -337,27 +332,29 @@ async function getAllOpponents(adventurer: AdventurerType) {
           }
         }
         `
-  });
-  if (!data.data || data.data.adventurers.length == 0) {
-    break;
-  }  
-  const advs = data.data.adventurers.map((i: any) => {
-    return {
-      ...i,
-      strength: parseInt(i.strength, 10),
-      dexterity: parseInt(i.dexterity, 10),
-      intelligence: parseInt(i.intelligence, 10),
-      charisma: parseInt(i.charisma, 10),
-      constitution: parseInt(i.constitution, 10),
-      wisdom: parseInt(i.wisdom, 10),
-      klass: parseInt(i.klass, 10)
-    };
-  }) as AdventurerType[];
-  adventurers = [...adventurers, ...advs];
-  size = advs.length;
-  if (size == 1000) nextTokenId = advs[999].tokenId;
-  nextTokenId++;
- }
+    });
+    if (!data.data || data.data.adventurers.length == 0) {
+      break;
+    }
+    const advs = data.data.adventurers.map((i: any) => {
+      return {
+        ...i,
+        strength: parseInt(i.strength, 10),
+        dexterity: parseInt(i.dexterity, 10),
+        intelligence: parseInt(i.intelligence, 10),
+        charisma: parseInt(i.charisma, 10),
+        constitution: parseInt(i.constitution, 10),
+        wisdom: parseInt(i.wisdom, 10),
+        klass: parseInt(i.klass, 10)
+      };
+    }) as AdventurerType[];
+    adventurers = [...adventurers, ...advs];
+    size = advs.length;
+
+    if (size == 1000) nextTokenId = advs[999].tokenId;
+    nextTokenId++;
+  }
+  console.log(adventurers)
   return adventurers;
 }
 function openPopup(message: string) {
