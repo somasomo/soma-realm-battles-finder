@@ -30,7 +30,7 @@ function getProbWinning(advA: AdventurerType, advB: AdventurerType) {
   return prob;
 }
 
-async function getOponent(
+function getOponent(
   adventurer: AdventurerType,
   opponents: AdventurerType[],
   levelSwitch:number = 13,
@@ -83,21 +83,22 @@ export async function getOpponentsAuto(
   
 
     await Promise.all(
-      remainingAdventurers.map(async adv => {
+    remainingAdventurers.map(async adv => {
         
-        const enemies = await getOponent(adv, opponents, levelSwitch, losingPreference, minValue);
+    const enemies = await getOponent(adv, opponents, levelSwitch, losingPreference, minValue);
 
-        enemies.forEach(enemy => {
-          if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
-            if (!used.includes(enemy.tokenId)) {
-              map[adv.tokenId] = enemy;
-              used.push(enemy.tokenId);
-            }
-          }
-        });
-        return enemies;
-      })
-    );
+    const enemies = getOponent(adv, winIt, opponents, levelSwitch);
+    console.log(enemies);
+    enemies.forEach(enemy => {
+      if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
+        if (!used.includes(enemy.tokenId)) {
+          map[adv.tokenId] = enemy;
+          used.push(enemy.tokenId);
+        }
+      }
+    });
+    return enemies;
+  })
 
   return map;
 }
@@ -147,8 +148,9 @@ function compareAdventurersLootboxes(advA: AdventurerType, advB: AdventurerType,
 }
 function compareAdventurersLootboxesCalculation(categories: string[], advA: AdventurerType, reference: AdventurerType, advB: AdventurerType, scoreA: number, losingPreference: number, strengthFactor: number, scoreB: number) {
   categories.forEach(category => {
-    const ratioA = advA[category] / reference[category];
-    const ratioB = advB[category] / reference[category];
+
+    const ratioA = (advA[category] as number) / (reference[category] as number);
+    const ratioB = (advB[category] as number) / (reference[category] as number);
 
     scoreA += calculateScoreLootboxes(ratioA, losingPreference, strengthFactor);
     scoreB += calculateScoreLootboxes(ratioB, losingPreference, strengthFactor);
@@ -255,27 +257,20 @@ export async function getOpponentsAutoLootboxes(
   let opponents = await getAllOpponents(adventurers[0]);
   //openPopup("opponent size " + opponents.length);
 
-
     await Promise.all(
       remainingAdventurers.map(async adv => {
         const enemies = await getOponentLootboxes(adv, opponents, levelSwitch, strengthFactor, losingPreference, minValue);
 
-        enemies.forEach(enemy => {
-          if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
-            if (!used.includes(enemy.tokenId)) {
-              map[adv.tokenId] = enemy;
-              used.push(enemy.tokenId);
-            }
+      enemies.forEach(enemy => {
+        if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
+          if (!used.includes(enemy.tokenId)) {
+            map[adv.tokenId] = enemy;
+            used.push(enemy.tokenId);
           }
         });
         return enemies;
       })
     );
-
-
-
-
-
   return map;
 }
 async function getAllOpponents(adventurer: AdventurerType) {
@@ -285,9 +280,9 @@ async function getAllOpponents(adventurer: AdventurerType) {
   let adventurers: AdventurerType[] = [];
   let size: number = 1000;
   let nextTokenId: number = 0;
-  while ( size == 1000) {
-  const { data } = await axios.post(graphEndpoint, {
-    query: `
+  while (size == 1000) {
+    const { data } = await axios.post(graphEndpoint, {
+      query: `
         query ExmapleQuery{
           adventurers(first: 1000, orderBy: tokenId, where: { 
             tokenId_gte: ${nextTokenId},
@@ -336,7 +331,6 @@ async function getAllOpponents(adventurer: AdventurerType) {
   if (size == 1000) nextTokenId = advs[999].tokenId;
   nextTokenId++;
  }
-
   return adventurers;
 }
 function openPopup(message) {
