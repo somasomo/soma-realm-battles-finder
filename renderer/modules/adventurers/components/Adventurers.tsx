@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getAdventurers } from '../api/getAdventurers';
-import { getOpponents } from '../api/getOponents';
 import { getOpponentsAuto } from '../api/getOponents';
 import { getOpponentsAutoLootboxes } from '../api/getOponents';
 import { AdventurerType } from '../types/adventurer';
@@ -18,6 +17,8 @@ import { fillCollectiblesRealm } from './fillCollectibles';
 export default function Adventurers({ address }: { address: string }) {
   const [adventurers, setAdventurers] = useState<AdventurerType[]>([]);
   const [strengthFactor, setStrengthFactor] = useState(2.0);
+  const [losingPreference, setLosingPreference] = useState(3);
+  const [filterPercentage, setFilterPercentage] = useState(50);
   const [levelSwitch, setLevelSwitch] = useState(13);
   const [oponents, setOponents] = useState<any>([]);
   const skillLabels = ['Str', 'Dex', 'Con', 'Int', 'Wis', 'Cha'];
@@ -51,14 +52,16 @@ export default function Adventurers({ address }: { address: string }) {
 
   const fetchOponentsAuto = async () => {
     if(!adventurers.length) return;
-    const op = await getOpponentsAuto(adventurers, false, levelSwitch);
+    let minValue = filterPercentage/100 * 6 * losingPreference;
+    const op = await getOpponentsAuto(adventurers, false, levelSwitch, losingPreference, minValue);
 
     setOponents(op);
   };
 
   const fetchOponentsAutoLootboxes = async () => {
     if(!adventurers.length) return;
-    const op = await getOpponentsAutoLootboxes(adventurers, levelSwitch, strengthFactor);
+    let minValue = filterPercentage/100 * 6 * losingPreference;
+    const op = await getOpponentsAutoLootboxes(adventurers, levelSwitch, strengthFactor, losingPreference, minValue);
 
     setOponents(op);
   };
@@ -117,9 +120,9 @@ export default function Adventurers({ address }: { address: string }) {
   };
 
 
-  function openPopup(message: string) {
+  function openPopup(message) {
     const popupWindow = window.open("", "popupWindow", "width=400, height=200");
-    (popupWindow as Window).document.write(`<html><head><title>Popup</title></head><body>${message}</body></html>`);
+    popupWindow.document.write(`<html><head><title>Popup</title></head><body>${message}</body></html>`);
   }
 
   const {
@@ -209,7 +212,7 @@ export default function Adventurers({ address }: { address: string }) {
 
   const [skills, setSkills] = useState(Array(6).fill(0));
 
-  const handleSkillInput = (e: any, index: number) => {
+  const handleSkillInput = (e, index) => {
     const value = parseInt(e.target.value);
     const sum = skills.reduce((a, b) => a + b, 0) - skills[index] + value;
     if (sum <= 6) {
@@ -314,10 +317,35 @@ export default function Adventurers({ address }: { address: string }) {
                 }}
               />
             </div>
-
+            <div>
+              <label>Losing preference</label>
+              <input
+                type="number"
+                value={losingPreference}
+                onChange={e => {
+                  setLosingPreference(parseInt(e.target.value));
+                }}
+              />
+            </div>
+            <div>
+              <label>Filter Percentage</label>
+              <input
+                type="number"
+                value={filterPercentage}
+                onChange={e => {
+                  let value = parseInt(e.target.value);
+                  if (value < 0) {
+                    value = 0;
+                  } else if (value > 100) {
+                    value = 100;
+                  }
+                  setFilterPercentage(value);
+                }}
+              />
+            </div>
             <div>
               <label>
-                Strength Factor (Opponent trait / Adventurer trait)
+                Strength Factor (Opponent / Adventurer trait)
               </label>
               <input
                 type="number"
@@ -331,8 +359,8 @@ export default function Adventurers({ address }: { address: string }) {
 
           </div>
 
-          <Button onClick={fetchOponentsAuto}>Automatically Optimize to Lose</Button>
-          <Button onClick={fetchOponentsAutoLootboxes}>Automatically Optimize for Anima and Lootboxes</Button>
+          <Button onClick={fetchOponentsAuto}>Automatically Optimize for Anima (AOVs with higher than level switch)</Button>
+          <Button onClick={fetchOponentsAutoLootboxes}>Automatically Optimize with Strength Factor (AOVs with less or equal level switch)</Button>
         </div>
       </div>
 
