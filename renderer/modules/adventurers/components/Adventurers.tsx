@@ -120,9 +120,9 @@ export default function Adventurers({ address }: { address: string }) {
   };
 
 
-  function openPopup(message) {
+  function openPopup(message: any) {
     const popupWindow = window.open("", "popupWindow", "width=400, height=200");
-    popupWindow.document.write(`<html><head><title>Popup</title></head><body>${message}</body></html>`);
+    (popupWindow as any).document.write(`<html><head><title>Popup</title></head><body>${message}</body></html>`);
   }
 
   const {
@@ -212,7 +212,7 @@ export default function Adventurers({ address }: { address: string }) {
 
   const [skills, setSkills] = useState(Array(6).fill(0));
 
-  const handleSkillInput = (e, index) => {
+  const handleSkillInput = (e: any, index: number) => {
     const value = parseInt(e.target.value);
     const sum = skills.reduce((a, b) => a + b, 0) - skills[index] + value;
     if (sum <= 6) {

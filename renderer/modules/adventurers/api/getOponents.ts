@@ -33,10 +33,10 @@ function getProbWinning(advA: AdventurerType, advB: AdventurerType) {
 function getOponent(
   adventurer: AdventurerType,
   opponents: AdventurerType[],
-  levelSwitch:number = 13,
-  losingPreference:number = 3,
-  minValue:number = 1
-): Promise<AdventurerType[]> {
+  levelSwitch: number = 13,
+  losingPreference: number = 3,
+  minValue: number = 1
+): AdventurerType[] {
   const advs = opponents;
 
   return advs
@@ -50,10 +50,10 @@ function getOponent(
 async function getOponentLootboxes(
   adventurer: AdventurerType,
   opponents: AdventurerType[],
-  levelSwitch:number = 13,
-  strengthFactor :number = 2.0,
-  losingPreference:number = 3,
-  minValue:number = 1
+  levelSwitch: number = 13,
+  strengthFactor: number = 2.0,
+  losingPreference: number = 3,
+  minValue: number = 1
 ): Promise<AdventurerType[]> {
   const advs = opponents;
 
@@ -67,11 +67,11 @@ async function getOponentLootboxes(
 
 export async function getOpponentsAuto(
   adventurers: AdventurerType[],
-  winIt: boolean ,
+  winIt: boolean,
   levelSwitch: number,
-  losingPreference:number = 3,
-  minValue:number = 1
-  ): Promise<{ [key: number]: AdventurerType }> {
+  losingPreference: number = 3,
+  minValue: number = 1
+): Promise<{ [key: number]: AdventurerType }> {
   const map: { [key: number]: AdventurerType } = {};
   const used: number[] = [];
 
@@ -80,30 +80,29 @@ export async function getOpponentsAuto(
 
   let remainingAdventurers = [...adventurers];
   let opponents = await getAllOpponents(adventurers[0]);
-  
 
-    await Promise.all(
+
+  await Promise.all(
     remainingAdventurers.map(async adv => {
-        
-    const enemies = await getOponent(adv, opponents, levelSwitch, losingPreference, minValue);
 
-    const enemies = getOponent(adv, winIt, opponents, levelSwitch);
-    console.log(enemies);
-    enemies.forEach(enemy => {
-      if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
-        if (!used.includes(enemy.tokenId)) {
-          map[adv.tokenId] = enemy;
-          used.push(enemy.tokenId);
+      const enemies = getOponent(adv, opponents, levelSwitch, losingPreference, minValue);
+
+      console.log(enemies);
+      enemies.forEach(enemy => {
+        if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
+          if (!used.includes(enemy.tokenId)) {
+            map[adv.tokenId] = enemy;
+            used.push(enemy.tokenId);
+          }
         }
-      }
-    });
-    return enemies;
-  })
+      });
+      return enemies;
+    }));
 
   return map;
 }
 function compareAdventurers(advA: AdventurerType, advB: AdventurerType, reference: AdventurerType, losingPreference: number): number {
-  const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'];
+  const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'] as (keyof AdventurerType)[];
   let scoreA = 0;
   let scoreB = 0;
 
@@ -111,10 +110,10 @@ function compareAdventurers(advA: AdventurerType, advB: AdventurerType, referenc
 
   return scoreA > scoreB ? -1 : scoreA < scoreB ? 1 : 0;
 }
-function compareAdventurersCalculation(categories: string[], advA: AdventurerType, reference: AdventurerType, advB: AdventurerType, scoreA: number, losingPreference: number, scoreB: number) {
+function compareAdventurersCalculation(categories: (keyof AdventurerType)[], advA: AdventurerType, reference: AdventurerType, advB: AdventurerType, scoreA: number, losingPreference: number, scoreB: number) {
   categories.forEach(category => {
-    const diffA = advA[category] - reference[category];
-    const diffB = advB[category] - reference[category];
+    const diffA = (advA[category] as number) - (reference[category] as number);
+    const diffB = (advB[category] as number) - (reference[category] as number);
 
     scoreA = calculateScore(diffA, scoreA, losingPreference, reference, category);
     scoreB = calculateScore(diffB, scoreB, losingPreference, reference, category);
@@ -122,22 +121,22 @@ function compareAdventurersCalculation(categories: string[], advA: AdventurerTyp
   return { scoreA, scoreB };
 }
 
-function calculateScore(diffA: number, scoreA: number, losingPreference: number, reference: AdventurerType, category: string) {
+function calculateScore(diffA: number, scoreA: number, losingPreference: number, reference: AdventurerType, category: keyof AdventurerType) {
   if (diffA > 0) {
-    scoreA += (1 / Math.sqrt(diffA)) * losingPreference; 
-  } 
-  else if (diffA <= 0 && diffA >= -Math.ceil(reference[category] / 2)) {
-     scoreA -= Math.pow((Math.ceil(reference[category] / 2) + diffA) / Math.ceil(reference[category] / 2), 2);
-   } 
+    scoreA += (1 / Math.sqrt(diffA)) * losingPreference;
+  }
+  else if (diffA <= 0 && diffA >= -Math.ceil((reference[category] as number) / 2)) {
+    scoreA -= Math.pow((Math.ceil((reference[category] as number) / 2) + diffA) / Math.ceil((reference[category] as number) / 2), 2);
+  }
   else {
-    scoreA += -3; 
-  } 
+    scoreA += -3;
+  }
 
   return scoreA;
 }
 
 function compareAdventurersLootboxes(advA: AdventurerType, advB: AdventurerType, reference: AdventurerType, strengthFactor: number): number {
-  const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'];
+  const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'] as (keyof AdventurerType)[];
   let scoreA = 0;
   let scoreB = 0;
   let losingPreference = 3;
@@ -146,7 +145,7 @@ function compareAdventurersLootboxes(advA: AdventurerType, advB: AdventurerType,
 
   return scoreA > scoreB ? -1 : scoreA < scoreB ? 1 : 0;
 }
-function compareAdventurersLootboxesCalculation(categories: string[], advA: AdventurerType, reference: AdventurerType, advB: AdventurerType, scoreA: number, losingPreference: number, strengthFactor: number, scoreB: number) {
+function compareAdventurersLootboxesCalculation(categories: (keyof AdventurerType)[], advA: AdventurerType, reference: AdventurerType, advB: AdventurerType, scoreA: number, losingPreference: number, strengthFactor: number, scoreB: number) {
   categories.forEach(category => {
 
     const ratioA = (advA[category] as number) / (reference[category] as number);
@@ -183,19 +182,19 @@ function calculateScoreLootboxes(ratio: number, losingPreference: number, streng
   return score;
 }
 function scoreHighEnough(enemy: AdventurerType, adventurer: AdventurerType, losingPreference: number, minValue: number = 4): boolean {
-  const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'];
+  const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'] as (keyof AdventurerType)[];
   let scoreA = 0;
   categories.forEach(category => {
-    const diffA = enemy[category] - adventurer[category];
+    const diffA = (enemy[category] as number) - (adventurer[category] as number);
     scoreA = calculateScore(diffA, scoreA, losingPreference, adventurer, category);
   });
   return scoreA >= minValue;
 }
 function scoreHighEnoughLootboxes(enemy: AdventurerType, adventurer: AdventurerType, losingPreference: number, strengthFactor: number, minValue: number = 4): boolean {
-  const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'];
+  const categories = ['charisma', 'strength', 'intelligence', 'constitution', 'wisdom', 'dexterity'] as (keyof AdventurerType)[];
   let scoreA = 0;
   categories.forEach(category => {
-    const ratioA = enemy[category] / adventurer[category];
+    const ratioA = (enemy[category] as number) / (adventurer[category] as number);
     scoreA += calculateScoreLootboxes(ratioA, losingPreference, strengthFactor);
   });
   return scoreA >= minValue;
@@ -205,40 +204,40 @@ function doesHaveSameTraitsOrTooWeak(adventurer: AdventurerType, enemy: Adventur
 
   if (adventurer.charisma == enemy.charisma) {
     fails++;
-  } 
+  }
   if (adventurer.strength == enemy.strength) {
     fails++;
-  } 
+  }
   if (adventurer.intelligence == enemy.intelligence) {
     fails++;
-  } 
+  }
   if (adventurer.constitution == enemy.constitution) {
     fails++;
-  } 
+  }
   if (adventurer.wisdom == enemy.wisdom) {
     fails++;
-  } 
+  }
   if (adventurer.dexterity == enemy.dexterity) {
     fails++;
-  } 
-  if (Math.floor(adventurer.charisma/2) > enemy.charisma) {
+  }
+  if (Math.floor(adventurer.charisma / 2) > enemy.charisma) {
     fails++;
-  } 
-  if (Math.floor(adventurer.strength/2) > enemy.strength) {
+  }
+  if (Math.floor(adventurer.strength / 2) > enemy.strength) {
     fails++;
-  } 
-  if (Math.floor(adventurer.intelligence/2) > enemy.intelligence) {
+  }
+  if (Math.floor(adventurer.intelligence / 2) > enemy.intelligence) {
     fails++;
-  } 
-  if (Math.floor(adventurer.constitution/2) > enemy.constitution) {
+  }
+  if (Math.floor(adventurer.constitution / 2) > enemy.constitution) {
     fails++;
-  } 
-  if (Math.floor(adventurer.wisdom/2) > enemy.wisdom) {
+  }
+  if (Math.floor(adventurer.wisdom / 2) > enemy.wisdom) {
     fails++;
-  } 
-  if (Math.floor(adventurer.dexterity/2) > enemy.dexterity) {
+  }
+  if (Math.floor(adventurer.dexterity / 2) > enemy.dexterity) {
     fails++;
-  } 
+  }
   return fails == 0;
 }
 
@@ -246,9 +245,9 @@ export async function getOpponentsAutoLootboxes(
   adventurers: AdventurerType[],
   levelSwitch: number,
   strengthFactor: number,
-  losingPreference:number = 3,
-  minValue:number = 1
-    ): Promise<{ [key: number]: AdventurerType }> {
+  losingPreference: number = 3,
+  minValue: number = 1
+): Promise<{ [key: number]: AdventurerType }> {
   const map: { [key: number]: AdventurerType } = {};
   const used: number[] = [];
 
@@ -257,9 +256,9 @@ export async function getOpponentsAutoLootboxes(
   let opponents = await getAllOpponents(adventurers[0]);
   //openPopup("opponent size " + opponents.length);
 
-    await Promise.all(
-      remainingAdventurers.map(async adv => {
-        const enemies = await getOponentLootboxes(adv, opponents, levelSwitch, strengthFactor, losingPreference, minValue);
+  await Promise.all(
+    remainingAdventurers.map(async adv => {
+      const enemies = await getOponentLootboxes(adv, opponents, levelSwitch, strengthFactor, losingPreference, minValue);
 
       enemies.forEach(enemy => {
         if (!map[adv.tokenId] && enemy.tokenId !== adv.tokenId) {
@@ -267,10 +266,11 @@ export async function getOpponentsAutoLootboxes(
             map[adv.tokenId] = enemy;
             used.push(enemy.tokenId);
           }
-        });
-        return enemies;
-      })
-    );
+        }
+      });
+      return enemies;
+    })
+  );
   return map;
 }
 async function getAllOpponents(adventurer: AdventurerType) {
@@ -310,30 +310,30 @@ async function getAllOpponents(adventurer: AdventurerType) {
           }
         }
         `
-  });
-  if (!data.data || data.data.adventurers.length == 0) {
-    break;
-  }  
-  const advs = data.data.adventurers.map((i: any) => {
-    return {
-      ...i,
-      strength: parseInt(i.strength, 10),
-      dexterity: parseInt(i.dexterity, 10),
-      intelligence: parseInt(i.intelligence, 10),
-      charisma: parseInt(i.charisma, 10),
-      constitution: parseInt(i.constitution, 10),
-      wisdom: parseInt(i.wisdom, 10),
-      klass: parseInt(i.klass, 10)
-    };
-  }) as AdventurerType[];
-  adventurers = [...adventurers, ...advs];
-  size = advs.length;
-  if (size == 1000) nextTokenId = advs[999].tokenId;
-  nextTokenId++;
- }
+    });
+    if (!data.data || data.data.adventurers.length == 0) {
+      break;
+    }
+    const advs = data.data.adventurers.map((i: any) => {
+      return {
+        ...i,
+        strength: parseInt(i.strength, 10),
+        dexterity: parseInt(i.dexterity, 10),
+        intelligence: parseInt(i.intelligence, 10),
+        charisma: parseInt(i.charisma, 10),
+        constitution: parseInt(i.constitution, 10),
+        wisdom: parseInt(i.wisdom, 10),
+        klass: parseInt(i.klass, 10)
+      };
+    }) as AdventurerType[];
+    adventurers = [...adventurers, ...advs];
+    size = advs.length;
+    if (size == 1000) nextTokenId = advs[999].tokenId;
+    nextTokenId++;
+  }
   return adventurers;
 }
-function openPopup(message) {
+function openPopup(message: any) {
   const messages = message.split('\n'); // Split the message string into individual messages
   const formattedMessage = messages.join('<br>'); // Join the messages back together, adding a <br> after each one
   const popupWindow = window.open("", "popupWindow", "width=400, height=200");
