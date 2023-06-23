@@ -71,7 +71,7 @@ export default function Adventurers({ address }: { address: string }) {
   });
 
   const { data, writeAsync, error, isError, isLoading } = useContractWrite({
-    address: '0x5A5c765b4fD4218BbF63fc35CBB2A42cD9B41f19',
+    address: '0x212e558206047037355625c4A3A182786f79832A',
     abi: abi,
     functionName: 'fight',
     mode: 'recklesslyUnprepared',
